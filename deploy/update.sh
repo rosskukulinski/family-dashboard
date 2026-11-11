@@ -7,7 +7,7 @@ export PATH="$HOME/.orbstack/bin:/Applications/OrbStack.app/Contents/MacOS/xbin:
 ts() { date '+%Y-%m-%d %H:%M:%S'; }
 
 before=$(docker compose images -q dashboard 2>/dev/null || true)
-docker compose pull -q
+docker compose pull -q >/dev/null 2>&1
 docker compose up -d --remove-orphans >/dev/null 2>&1
 after=$(docker compose images -q dashboard 2>/dev/null || true)
 [ "$before" = "$after" ] || echo "$(ts) image updated: ${before:-none} -> $after"

@@ -1,0 +1,399 @@
+{
+ "categories": {
+  "data": [
+   {
+    "id": "10",
+    "type": "category",
+    "attributes": {
+     "label": "Ada"
+    }
+   },
+   {
+    "id": "11",
+    "type": "category",
+    "attributes": {
+     "label": "Max"
+    }
+   },
+   {
+    "id": "12",
+    "type": "category",
+    "attributes": {
+     "label": "family"
+    }
+   },
+   {
+    "id": "13",
+    "type": "category",
+    "attributes": {
+     "label": "Parent"
+    }
+   }
+  ]
+ },
+ "reward_points": [
+  {
+   "category_id": 10,
+   "lifetime_points_earned": 40,
+   "current_point_balance": 3
+  },
+  {
+   "category_id": 11,
+   "lifetime_points_earned": 30,
+   "current_point_balance": 5
+  },
+  {
+   "category_id": 12,
+   "lifetime_points_earned": 9,
+   "current_point_balance": 18
+  }
+ ],
+ "chores": {
+  "data": [
+   {
+    "id": "1",
+    "type": "chore",
+    "attributes": {
+     "summary": "Brush teeth (AM)",
+     "status": "complete",
+     "start": "2026-11-09",
+     "start_time": "06:00",
+     "reward_points": 1,
+     "position": 2,
+     "up_for_grabs": false,
+     "emoji_icon": null,
+     "routine": true
+    },
+    "relationships": {
+     "category": {
+      "data": {
+       "id": "10",
+       "type": "category"
+      }
+     },
+     "completed_category": {
+      "data": null
+     }
+    }
+   },
+   {
+    "id": "2",
+    "type": "chore",
+    "attributes": {
+     "summary": "Make bed",
+     "status": "pending",
+     "start": "2026-11-09",
+     "start_time": "06:00",
+     "reward_points": 1,
+     "position": 1,
+     "up_for_grabs": false,
+     "emoji_icon": null,
+     "routine": true
+    },
+    "relationships": {
+     "category": {
+      "data": {
+       "id": "10",
+       "type": "category"
+      }
+     },
+     "completed_category": {
+      "data": null
+     }
+    }
+   },
+   {
+    "id": "3",
+    "type": "chore",
+    "attributes": {
+     "summary": "Good day at school",
+     "status": "pending",
+     "start": "2026-11-09",
+     "start_time": "14:00",
+     "reward_points": 2,
+     "position": 1,
+     "up_for_grabs": false,
+     "emoji_icon": null,
+     "routine": true
+    },
+    "relationships": {
+     "category": {
+      "data": {
+       "id": "10",
+       "type": "category"
+      }
+     },
+     "completed_category": {
+      "data": null
+     }
+    }
+   },
+   {
+    "id": "4",
+    "type": "chore",
+    "attributes": {
+     "summary": "Brush teeth (PM)",
+     "status": "pending",
+     "start": "2026-11-09",
+     "start_time": "20:00",
+     "reward_points": 1,
+     "position": 1,
+     "up_for_grabs": false,
+     "emoji_icon": null,
+     "routine": true
+    },
+    "relationships": {
+     "category": {
+      "data": {
+       "id": "10",
+       "type": "category"
+      }
+     },
+     "completed_category": {
+      "data": null
+     }
+    }
+   },
+   {
+    "id": "5",
+    "type": "chore",
+    "attributes": {
+     "summary": "Make bed",
+     "status": "pending",
+     "start": "2026-11-09",
+     "start_time": "06:00",
+     "reward_points": 1,
+     "position": 1,
+     "up_for_grabs": false,
+     "emoji_icon": null,
+     "routine": true
+    },
+    "relationships": {
+     "category": {
+      "data": {
+       "id": "11",
+       "type": "category"
+      }
+     },
+     "completed_category": {
+      "data": null
+     }
+    }
+   },
+   {
+    "id": "6",
+    "type": "chore",
+    "attributes": {
+     "summary": "Feed the cat",
+     "status": "pending",
+     "start": "2026-11-09",
+     "start_time": null,
+     "reward_points": 2,
+     "position": 1,
+     "up_for_grabs": false,
+     "emoji_icon": null,
+     "routine": false
+    },
+    "relationships": {
+     "category": {
+      "data": {
+       "id": "11",
+       "type": "category"
+      }
+     },
+     "completed_category": {
+      "data": null
+     }
+    }
+   },
+   {
+    "id": "7",
+    "type": "chore",
+    "attributes": {
+     "summary": "Pay the bills",
+     "status": "pending",
+     "start": "2026-11-09",
+     "start_time": null,
+     "reward_points": null,
+     "position": 1,
+     "up_for_grabs": false,
+     "emoji_icon": null,
+     "routine": false
+    },
+    "relationships": {
+     "category": {
+      "data": {
+       "id": "13",
+       "type": "category"
+      }
+     },
+     "completed_category": {
+      "data": null
+     }
+    }
+   },
+   {
+    "id": "8",
+    "type": "chore",
+    "attributes": {
+     "summary": "Clean dining table",
+     "status": "pending",
+     "start": "2026-11-09",
+     "start_time": null,
+     "reward_points": 3,
+     "position": 1,
+     "up_for_grabs": true,
+     "emoji_icon": null,
+     "routine": false
+    },
+    "relationships": {
+     "category": {
+      "data": null
+     },
+     "completed_category": {
+      "data": null
+     }
+    }
+   },
+   {
+    "id": "9",
+    "type": "chore",
+    "attributes": {
+     "summary": "Sweep the floor",
+     "status": "complete",
+     "start": "2026-11-09",
+     "start_time": null,
+     "reward_points": 2,
+     "position": 1,
+     "up_for_grabs": true,
+     "emoji_icon": null,
+     "routine": false
+    },
+    "relationships": {
+     "category": {
+      "data": null
+     },
+     "completed_category": {
+      "data": {
+       "id": "11",
+       "type": "category"
+      }
+     }
+    }
+   }
+  ]
+ },
+ "rewards": {
+  "data": [
+   {
+    "id": "r1",
+    "type": "reward",
+    "attributes": {
+     "name": "Pizza night",
+     "emoji_icon": "🍕",
+     "point_value": 20,
+     "redeemed_at": null
+    },
+    "relationships": {
+     "category": {
+      "data": {
+       "id": "12",
+       "type": "category"
+      }
+     }
+    }
+   },
+   {
+    "id": "r2",
+    "type": "reward",
+    "attributes": {
+     "name": "Zoo trip",
+     "emoji_icon": null,
+     "point_value": 60,
+     "redeemed_at": null
+    },
+    "relationships": {
+     "category": {
+      "data": {
+       "id": "12",
+       "type": "category"
+      }
+     }
+    }
+   },
+   {
+    "id": "r3",
+    "type": "reward",
+    "attributes": {
+     "name": "iPad time",
+     "emoji_icon": "📱",
+     "point_value": 6,
+     "redeemed_at": null
+    },
+    "relationships": {
+     "category": {
+      "data": {
+       "id": "10",
+       "type": "category"
+      }
+     }
+    }
+   }
+  ]
+ },
+ "events": {
+  "data": [
+   {
+    "id": "e1",
+    "type": "calendar_event",
+    "attributes": {
+     "summary": "Max swim",
+     "starts_at": "2026-11-09T17:30:00.000-08:00",
+     "ends_at": "2026-11-09T18:30:00.000-08:00",
+     "all_day": false,
+     "location": "Community Pool, 1 Main St"
+    },
+    "relationships": {
+     "category": {
+      "data": {
+       "id": "12",
+       "type": "category"
+      }
+     }
+    }
+   },
+   {
+    "id": "e2",
+    "type": "calendar_event",
+    "attributes": {
+     "summary": "Board meeting",
+     "starts_at": "2026-11-10T19:00:00.000-08:00",
+     "ends_at": "2026-11-10T20:00:00.000-08:00",
+     "all_day": false,
+     "location": "https://us02web.zoom.us/j/123?pwd=SECRET"
+    },
+    "relationships": {
+     "category": {
+      "data": null
+     }
+    }
+   },
+   {
+    "id": "e3",
+    "type": "calendar_event",
+    "attributes": {
+     "summary": "No school",
+     "starts_at": "2026-11-10T00:00:00.000-08:00",
+     "ends_at": "2026-11-11T00:00:00.000-08:00",
+     "all_day": true,
+     "location": null
+    },
+    "relationships": {
+     "category": {
+      "data": null
+     }
+    }
+   }
+  ]
+ }
+}

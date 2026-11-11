@@ -1,0 +1,100 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Lint
+        run: ruff check .
+      - name: Unit tests
+        run: pytest -m "not browser"
+      - name: Install Chromium
+        run: python -m playwright install --with-deps chromium
+      - name: Browser layout tests
+        run: pytest -m browser
+      - name: Render the sample dashboard
+        env: { KIDS: "Ada:#f472b6,Max:#60a5fa", TZ: America/Los_Angeles, STAR_SWEEP: "on" }
+        run: python -m familydash render-once examples/sample.json sample.png --at 2026-11-09T09:10:00-08:00
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sample-render
+          path: sample.png
+
+  roku:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: pip install --no-deps -e .
+      - name: Package the Roku app
+        env: { PUBLIC_URL: "http://example.invalid:8097" }
+        run: |
+          python -m familydash roku-package app.zip
+          mkdir -p build/roku && unzip -q app.zip -d build/roku
+      - name: Compile check (BrighterScript)
+        run: npx --yes @rokucommunity/bsc@0 --rootDir build/roku --createPackage false
+
+  image:
+    needs: [test, roku]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        if: github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha
+            type=semver,pattern={{version}}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test the image
+        if: github.event_name != 'pull_request'
+        run: |
+          img=ghcr.io/${{ github.repository }}:sha-${GITHUB_SHA::7}
+          mkdir -p smoke && cp examples/sample.json smoke/data.json && chmod -R a+rwX smoke
+          docker run -d --name smoke -p 8097:8097 -v "$PWD/smoke:/data" -e KIDS=Ada,Max "$img"
+          for i in $(seq 1 30); do curl -sf -o out.jpg localhost:8097/dashboard.jpg && break; sleep 2; done
+          docker logs smoke
+          test -s out.jpg

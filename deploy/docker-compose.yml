@@ -1,0 +1,13 @@
+# Copy this folder somewhere on the always-on machine, create .env from .env.example,
+# then: docker compose up -d   (deploy/update.sh keeps it current)
+services:
+  dashboard:
+    image: ghcr.io/rosskukulinski/family-dashboard:${FAMILYDASH_TAG:-latest}
+    container_name: family-dashboard
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8097:8097"
+    volumes:
+      - ./data:/data          # skylight-last.json, sweep state/log, optional data.json
+    shm_size: "256mb"

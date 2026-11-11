@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Downloads the dashboard image to tmp:/ on a background thread (with a timeout),
+     so the Poster only ever loads a local file. -->
+<component name="Fetcher" extends="Task">
+  <interface>
+    <field id="url" type="string" />
+    <field id="file" type="string" />
+    <field id="result" type="string" alwaysNotify="true" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/Fetcher.brs" />
+</component>

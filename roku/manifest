@@ -1,0 +1,8 @@
+title=Family Dashboard
+major_version=@VERSION_MAJOR@
+minor_version=@VERSION_MINOR@
+build_version=@VERSION_BUILD@
+ui_resolutions=fhd
+splash_color=#101828
+splash_min_time=0
+screensaver_title=Family Dashboard

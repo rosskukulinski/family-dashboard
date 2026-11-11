@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="MainScene" extends="Scene">
+  <interface>
+    <field id="imageUrl" type="string" value="@DASHBOARD_URL@" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/MainScene.brs" />
+  <children>
+    <Rectangle width="1920" height="1080" color="#0d1324FF" />
+    <Label id="msg" text="Loading family dashboard…" translation="[0,480]" width="1920" height="120"
+           horizAlign="center" vertAlign="center" color="#94a3b8FF" font="font:MediumSystemFont" />
+    <Poster id="a" width="1920" height="1080" loadDisplayMode="scaleToFit" visible="false" />
+    <Poster id="b" width="1920" height="1080" loadDisplayMode="scaleToFit" visible="false" />
+    <Timer id="tick" repeat="true" duration="30" />
+  </children>
+</component>

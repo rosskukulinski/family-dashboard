@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- macOS: copy to ~/Library/LaunchAgents/, fix the paths, then
+     launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.familydash.update.plist -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.familydash.update</string>
+  <key>ProgramArguments</key>
+  <array><string>/bin/sh</string><string>/Users/YOU/family-dashboard/update.sh</string></array>
+  <key>StartInterval</key><integer>900</integer>
+  <key>RunAtLoad</key><true/>
+  <key>StandardOutPath</key><string>/Users/YOU/family-dashboard/update.log</string>
+  <key>StandardErrorPath</key><string>/Users/YOU/family-dashboard/update.log</string>
+</dict>
+</plist>

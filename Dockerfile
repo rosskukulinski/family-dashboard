@@ -1,6 +1,6 @@
 # Headless Chromium + Python, multi-arch (amd64 / arm64). The playwright package below
 # must match the image tag, because the browsers are baked into the image.
-FROM mcr.microsoft.com/playwright/python:v1.55.0-noble
+FROM mcr.microsoft.com/playwright/python:v1.65.0-noble
 
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 \
     DATA_DIR=/data WWW_DIR=/www PORT=8097

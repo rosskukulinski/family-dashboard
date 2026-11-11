@@ -17,8 +17,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -42,10 +42,10 @@ jobs:
   roku:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with: { python-version: "3.12" }
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with: { node-version: "22" }
       - run: pip install --no-deps -e .
       - name: Package the Roku app
@@ -54,7 +54,7 @@ jobs:
           python -m familydash roku-package app.zip
           mkdir -p build/roku && unzip -q app.zip -d build/roku
       - name: Compile check (BrighterScript)
-        run: npx --yes @rokucommunity/bsc@0 --rootDir build/roku --createPackage false
+        run: npx --yes -p brighterscript@0 bsc --rootDir build/roku --createPackage false
 
   image:
     needs: [test, roku]
@@ -63,7 +63,7 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3

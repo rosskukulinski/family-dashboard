@@ -30,7 +30,8 @@ def test_route_baseline():
 
 def test_pending_shows_the_plan():
     e = kz.estimate(kz.apply([], ROUTE, TZ), ROUTE, at(6, 30), plan_depart=PLAN)
-    assert e.status == "pending" and e.eta == at(12, 25) and e.headline == "leaves ~7:00am" and e.sub == "plan: here ~12:25pm · incl. 20-min stop"
+    assert e.status == "pending" and e.eta == at(12, 25) and e.headline == "leaves ~7:00am"
+    assert e.sub == "plan: here ~12:25pm · incl. 20-min stop"
     e = kz.estimate(kz.apply([], ROUTE, TZ), ROUTE, at(7, 20), plan_depart=PLAN)
     assert e.headline == "leaving soon…"
 

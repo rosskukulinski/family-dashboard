@@ -1,0 +1,93 @@
+{
+  "version": 2,
+  "title": "Thanksgiving",
+  "params": {"dinner_at": "16:00", "turkey_lb": 14, "convection": false, "ovens": 1, "burners": 4},
+  "dishes": [
+    {"id": "turkey", "name": "Turkey", "emoji": "🦃", "color": "#fb923c", "steps": [
+      {"id": "turkey_out_fridge", "label": "Turkey out of the fridge", "check_label": "It's out",
+       "duration": 5, "end": {"ref": "turkey_prep", "edge": "start", "delta": -60}, "resource": "counter",
+       "notes": "Unwrap, pull the neck and giblet bag from the cavity (save the neck for gravy stock), pat dry with paper towels. Let it sit about an hour to take the chill off; never more than 2 hours out."},
+      {"id": "turkey_temper", "label": "tempering", "kind": "passive",
+       "start": {"ref": "turkey_out_fridge", "edge": "end"}, "end": {"ref": "turkey_prep", "edge": "start"}, "resource": "counter"},
+      {"id": "oven_preheat", "label": "Preheat oven to 325°F", "check_label": "Oven's on",
+       "duration": 20, "end": {"var": "roast", "scale": -1, "plus": -60}, "resource": "oven", "temp": 325,
+       "notes": "Rack in the lower third so the bird sits in the middle of the oven. Allow 20 minutes to come up to temperature."},
+      {"id": "turkey_prep", "label": "Season the bird", "check_label": "Into the oven!",
+       "duration": 20, "end": {"var": "roast", "scale": -1, "plus": -60}, "resource": "counter",
+       "notes": "Rub softened butter, salt and pepper (plus thyme/sage if you have it) all over the skin and under the breast skin. Tuck the wing tips under, tie the legs together. Onion, lemon and herbs in the cavity are nice but optional. Breast up on a rack in the roasting pan; pour a cup of water or stock in the pan so the drippings don't scorch."},
+      {"id": "turkey_roast", "label": "Roast at 325°F", "check_label": "Turkey is OUT",
+       "duration": {"var": "roast"}, "start": {"ref": "turkey_prep", "edge": "end"}, "resource": "oven", "temp": 325,
+       "notes": "Uncovered. If the skin browns too fast, tent the breast loosely with foil. Basting is optional; every time the door opens the oven loses heat and the clock stretches. Done at 165°F in the thickest part of the thigh (away from the bone) AND the breast. Early is not a problem: tent it and let it rest longer."},
+      {"id": "turkey_temp_check", "label": "Thermometer check", "check_label": "Checked", "optional": true,
+       "duration": 5, "start": {"ref": "turkey_roast", "edge": "start", "delta": {"var": "roast", "scale": 0.75}}, "resource": "counter",
+       "notes": "Thigh (away from the bone) and the thickest part of the breast. 165°F = done, pull it. 150°F+ = on track, check again in 20 to 30 minutes. Under 140°F = running behind; think about pushing dinner 15 to 30 minutes."},
+      {"id": "turkey_rest", "label": "rest, tented with foil", "kind": "passive", "duration": 40,
+       "start": {"ref": "turkey_roast", "edge": "end"}, "resource": "counter",
+       "notes": "Do not skip the rest: 30 to 45 minutes. The juices settle and the bird stays hot for a good hour under foil."},
+      {"id": "turkey_carve", "label": "Carve", "check_label": "Carved",
+       "duration": 15, "start": {"max": [{"ref": "turkey_rest", "edge": "end"}, -20]}, "resource": "counter",
+       "notes": "Legs and thighs off first, then each breast off the bone in one piece and slice it crosswise. Warm the platter. Pour any juice from the board into the gravy."}
+    ]},
+    {"id": "stuffing", "name": "Stuffing", "emoji": "🍞", "color": "#fbbf24", "steps": [
+      {"id": "stuffing_prep", "label": "Assemble the stuffing", "check_label": "Assembled",
+       "duration": 30, "start": -170, "resource": "stovetop",
+       "notes": "Cube the bread (dried out or toasted is best). Sauté onion and celery in a generous amount of butter until soft; add sage and thyme. Toss with the bread, warm stock and a beaten egg or two until moist but not soggy; season well. Into a buttered 9x13, foil on top, into the fridge until bake time."},
+      {"id": "stuffing_hold", "label": "in the fridge", "kind": "passive",
+       "start": {"ref": "stuffing_prep", "edge": "end"}, "end": {"ref": "stuffing_bake", "edge": "start"}, "resource": "none"},
+      {"id": "stuffing_bake", "label": "Bake at 350°F", "check_label": "Stuffing's out",
+       "duration": 45, "start": {"ref": "turkey_roast", "edge": "end"}, "resource": "oven", "temp": 350,
+       "notes": "Goes in the moment the turkey comes out; turn the oven up to 350°F. Foil on for 30 minutes, off for the last 15 to crisp the top. Splash in stock if it looks dry."}
+    ]},
+    {"id": "potatoes", "name": "Mashed potatoes", "emoji": "🥔", "color": "#a78bfa", "steps": [
+      {"id": "potato_peel", "label": "Peel & cut potatoes", "check_label": "In cold water",
+       "duration": 25, "start": -140, "resource": "counter",
+       "notes": "About 3/4 lb per person (Yukon Gold or russet), peeled, cut into 1.5-inch chunks, into a big pot of cold water. They hold like this for hours."},
+      {"id": "potato_hold", "label": "in cold water", "kind": "passive",
+       "start": {"ref": "potato_peel", "edge": "end"}, "end": {"ref": "potato_boil", "edge": "start"}, "resource": "none"},
+      {"id": "potato_boil", "label": "Boil until tender", "check_label": "Drained",
+       "duration": 35, "end": -40, "resource": "stovetop",
+       "notes": "Salt the water well. About 15 minutes to come to a boil from cold, then 15 to 20 minutes until a knife slides in with no resistance."},
+      {"id": "potato_mash", "label": "Mash", "check_label": "Mashed",
+       "duration": 10, "start": {"max": [{"ref": "potato_boil", "edge": "end"}, -40]}, "resource": "stovetop",
+       "notes": "Drain, back into the hot pot for a minute to steam dry. Mash with warm milk or cream and plenty of butter; salt to taste. No blender or food processor (glue)."},
+      {"id": "potato_warm", "label": "keep warm", "kind": "passive",
+       "start": {"ref": "potato_mash", "edge": "end"}, "end": 0, "resource": "stovetop",
+       "notes": "Lowest heat with the lid on, or a slow cooker on warm. Stir in a splash of milk right before serving."}
+    ]},
+    {"id": "gravy", "name": "Fresh gravy", "emoji": "🥣", "color": "#f472b6", "steps": [
+      {"id": "gravy_fresh", "label": "Make the gravy from the drippings", "check_label": "Gravy done",
+       "duration": 25, "start": {"ref": "turkey_roast", "edge": "end", "delta": 5}, "resource": "stovetop",
+       "notes": "1) Tip the pan juices into a fat separator or measuring cup; let the fat rise. 2) 1/4 cup of that fat (top up with butter) + 1/4 cup flour in a saucepan over medium heat, whisk 2 to 3 minutes until golden. 3) Slowly whisk in about 4 cups warm stock plus the defatted juices, scraping up the browned bits; simmer 10 to 15 minutes until it coats a spoon. Salt, pepper, a splash of cider vinegar if it tastes flat. Strain if you want it smooth."},
+      {"id": "gravy_warm", "label": "keep warm", "kind": "passive",
+       "start": {"ref": "gravy_fresh", "edge": "end"}, "end": 0, "resource": "stovetop",
+       "notes": "Low heat; whisk before pouring into a warmed gravy boat."}
+    ]},
+    {"id": "boxgravy", "name": "Boxed gravy", "emoji": "📦", "color": "#94a3b8", "optional": true, "steps": [
+      {"id": "box_gravy", "label": "Heat the boxed gravy", "check_label": "Hot",
+       "duration": 10, "end": -5, "resource": "stovetop",
+       "notes": "Backup and extra. Whisk into a small pan, bring to a simmer for a minute or two. Stir into the fresh gravy if you need to stretch it."}
+    ]},
+    {"id": "biscuits", "name": "Biscuits", "emoji": "🥐", "color": "#fde68a", "steps": [
+      {"id": "biscuits_bake", "label": "Pillsbury biscuits in at 350°F", "check_label": "Biscuits out",
+       "duration": 15, "end": -5, "resource": "oven", "temp": 350,
+       "notes": "Pop the can, biscuits 2 inches apart on an ungreased sheet, 13 to 17 minutes at 350°F until golden. They share the oven with the stuffing. Into a towel-lined basket."}
+    ]},
+    {"id": "salad", "name": "Salad", "emoji": "🥗", "color": "#34d399", "steps": [
+      {"id": "salad_prep", "label": "Salad prep", "check_label": "Prepped",
+       "duration": 10, "start": -30, "resource": "counter",
+       "notes": "Open or wash and spin the greens; chop apple or pear, toast nuts, crumble cheese; whisk the dressing. Keep the greens and dressing apart until the last minute."},
+      {"id": "salad_toss", "label": "Toss & serve the salad", "check_label": "Tossed",
+       "duration": 5, "end": 0, "resource": "counter",
+       "notes": "Very last thing before everyone sits down."}
+    ]},
+    {"id": "table", "name": "Table", "emoji": "🍽️", "color": "#60a5fa", "steps": [
+      {"id": "table_set", "label": "Set the table", "check_label": "Table's set", "who": "Hannah & Elliott",
+       "duration": 15, "end": -30, "resource": "none",
+       "notes": "Plates, cutlery, glasses, serving spoons, trivets, gravy boat, butter dish, salt and pepper."},
+      {"id": "water", "label": "Fill the water glasses", "check_label": "Filled", "who": "Elliott",
+       "duration": 5, "end": -10, "resource": "none", "notes": "Ice optional."},
+      {"id": "dinner", "label": "Dinner!", "check_label": "We're eating!", "kind": "milestone",
+       "duration": 0, "start": 0, "resource": "none", "notes": "Happy Thanksgiving."}
+    ]}
+  ]
+}

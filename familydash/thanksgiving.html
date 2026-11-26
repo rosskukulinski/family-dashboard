@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Thanksgiving</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, Inter, "Noto Sans", sans-serif; background: #0d1324; color: #f1f5f9; padding: 12px 12px 80px; max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 22px; display: flex; align-items: baseline; gap: 10px; margin: 6px 4px 10px; }
+  h1 small { color: #94a3b8; font-weight: 500; font-size: 15px; margin-left: auto; }
+  h2 { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: #94a3b8; margin: 18px 4px 8px; }
+  .card { background: rgba(255,255,255,.06); border-radius: 18px; padding: 12px; margin-bottom: 10px; }
+  .hero { border: 2px solid rgba(253,230,138,.6); }
+  .hero.late { border-color: #fbbf24; background: rgba(251,191,36,.12); }
+  .hero.party { border-color: #86efac; }
+  .hero .big { font-size: 24px; font-weight: 800; }
+  .hero .sub { color: #cbd5e1; margin-top: 4px; font-size: 16px; }
+  .settings { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 17px; }
+  .settings b { color: #fde68a; font-size: 20px; }
+  .settings .proj { color: #fbbf24; }
+  button { font: inherit; color: inherit; border: 0; border-radius: 14px; background: rgba(255,255,255,.1); padding: 10px 14px; font-size: 16px; font-weight: 600; min-height: 44px; cursor: pointer; }
+  button:active { background: rgba(255,255,255,.22); }
+  button.primary { background: #fde68a; color: #0d1324; font-weight: 800; }
+  button.go { background: #86efac; color: #0d1324; font-weight: 800; }
+  button.small { padding: 6px 10px; min-height: 36px; font-size: 14px; border-radius: 10px; }
+  button.chip { border-radius: 999px; padding: 8px 14px; }
+  button.chip.on { background: #f472b6; color: #0d1324; }
+  .step { display: flex; align-items: center; gap: 10px; padding: 10px 10px; border-radius: 14px; margin-bottom: 6px; background: rgba(255,255,255,.04); min-height: 56px; }
+  .step .box { flex: none; width: 34px; height: 34px; border-radius: 10px; border: 3px solid #64748b; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 22px; }
+  .step.done .box { background: var(--c); border-color: var(--c); color: #0d1324; }
+  .step .txt { flex: 1; min-width: 0; }
+  .step .lbl { font-size: 17px; font-weight: 600; }
+  .step .meta { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+  .step.late { background: rgba(251,191,36,.14); }
+  .step.late .meta { color: #fde68a; }
+  .step.now .lbl { color: #fde68a; }
+  .step.done .lbl { color: #64748b; text-decoration: line-through; }
+  .step.skipped .lbl, .step.missed .lbl { color: #64748b; text-decoration: line-through; }
+  .step .act { flex: none; }
+  .notes { font-size: 14px; color: #cbd5e1; padding: 6px 12px 10px 56px; margin-top: -6px; display: none; line-height: 1.4; }
+  .step.open + .notes { display: block; }
+  .kelsey { border: 2px solid #f472b6; }
+  .kelsey.arrived { border-color: #86efac; }
+  .kelsey.overdue { border-color: #fbbf24; }
+  .khead { display: flex; align-items: baseline; gap: 10px; }
+  .kname { font-size: 20px; font-weight: 800; color: #f472b6; }
+  .keta { margin-left: auto; font-size: 26px; font-weight: 800; color: #fde68a; }
+  .kelsey.arrived .keta { color: #86efac; }
+  .ksub { color: #cbd5e1; font-size: 14px; margin: 4px 0 8px; }
+  .kelsey svg { width: 100%; height: auto; display: block; margin: 4px 0 8px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; align-items: center; }
+  .row label { font-size: 14px; color: #94a3b8; }
+  input[type=time] { font: inherit; font-size: 18px; padding: 8px 10px; border-radius: 12px; border: 0; background: rgba(255,255,255,.1); color: inherit; min-height: 44px; }
+  .toast { position: fixed; left: 12px; right: 12px; bottom: 12px; background: #1e293b; border: 2px solid #fde68a; border-radius: 16px; padding: 12px; display: none; gap: 8px; align-items: center; flex-wrap: wrap; z-index: 9; font-size: 15px; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+  .toast.show { display: flex; }
+  .toast .msg { flex: 1 1 100%; font-weight: 700; }
+  .banner { display: none; background: #7f1d1d; color: #fff; border-radius: 12px; padding: 10px; margin-bottom: 10px; font-weight: 700; }
+  .banner.show { display: block; }
+  .tv { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .muted { color: #64748b; font-size: 13px; }
+  .conflict { color: #fbbf24; font-size: 14px; margin-top: 6px; }
+  details summary { cursor: pointer; color: #94a3b8; font-size: 14px; padding: 8px 4px; }
+  .who { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 4px 8px; }
+</style></head>
+<body>
+<div class="banner" id="banner">Reconnecting to the dashboard…</div>
+<h1>🦃 Thanksgiving <small id="clock"></small></h1>
+<div class="who" id="who"></div>
+<div class="card hero" id="hero"><div class="big">Loading…</div><div class="sub"></div></div>
+
+<div class="card">
+  <div class="settings">
+    <span>Dinner <b id="dinner">—</b> <span class="proj" id="proj"></span></span>
+    <button class="small" onclick="op({op:'settings',dinner_delta:-15})">−15</button>
+    <button class="small" onclick="op({op:'settings',dinner_delta:15})">+15</button>
+    <button class="small" id="useproj" style="display:none"></button>
+  </div>
+  <div class="settings" style="margin-top:8px">
+    <span>Turkey <b id="lb">—</b> lb · roast <span id="roast"></span></span>
+    <button class="small" onclick="op({op:'settings',turkey_lb:+S.turkey_lb-1})">−</button>
+    <button class="small" onclick="op({op:'settings',turkey_lb:+S.turkey_lb+1})">+</button>
+    <span class="muted" id="progress"></span>
+  </div>
+  <div class="conflict" id="conflicts"></div>
+</div>
+
+<h2>Right now</h2>
+<div id="now"></div>
+
+<div class="card kelsey" id="kelsey">
+  <div class="khead"><span class="kname">🚗 <span id="kname">Kelsey</span></span><span class="keta" id="keta"></span></div>
+  <div class="ksub" id="ksub"></div>
+  <div id="ksvg"></div>
+  <div id="kctl"></div>
+</div>
+
+<h2>Next up</h2>
+<div id="next"></div>
+<h2>Later</h2>
+<div id="later"></div>
+<details><summary id="donesum">Done</summary><div id="done"></div></details>
+
+<h2>TV</h2>
+<div class="card tv" id="tv"></div>
+<div class="card" style="display:flex;gap:8px;flex-wrap:wrap">
+  <button onclick="op({op:'undo'})" id="undo">↶ Undo last change</button>
+  <button class="small" onclick="if(confirm('Wipe every check and Kelsey update for a fresh day?'))op({op:'reset',confirm:'RESET'})">Reset day…</button>
+  <a class="muted" href="/thanksgiving.png" target="_blank" style="align-self:center">TV preview ↗</a>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let S = null, timer = null, lastOk = Date.now(), pendingArrive = 0;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const who = () => localStorage.tgwho || '';
+const NAMES = ['Ross', 'Nicole', 'Kids', 'Guest'];
+
+function renderWho() {
+  $('who').innerHTML = NAMES.map(n => `<button class="chip small ${who()===n?'on':''}" onclick="localStorage.tgwho='${n}';renderWho()">${n}</button>`).join('')
+    + `<span class="muted" style="align-self:center">← who's tapping?</span>`;
+}
+
+async function load() {
+  try {
+    const r = await fetch('/api/tg', {cache: 'no-store'});
+    if (!r.ok) throw new Error(r.status);
+    S = await r.json(); lastOk = Date.now(); $('banner').classList.remove('show');
+    render();
+  } catch (e) {
+    if (Date.now() - lastOk > 20000) $('banner').classList.add('show');
+  }
+}
+
+async function op(o, toastMsg) {
+  o.who = who();
+  try {
+    const r = await fetch('/api/tg', {method: 'POST', body: JSON.stringify(o), headers: {'Content-Type': 'application/json'}});
+    const j = await r.json();
+    if (!r.ok) { alert(j.error || 'That didn\'t work'); return; }
+    S = j; lastOk = Date.now(); render();
+    if (toastMsg) toast(toastMsg);
+  } catch (e) { $('banner').classList.add('show'); }
+}
+
+function toast(html) {
+  const t = $('toast'); t.innerHTML = html; t.classList.add('show');
+  clearTimeout(timer); timer = setTimeout(() => t.classList.remove('show'), 12000);
+}
+function hideToast() { $('toast').classList.remove('show'); }
+
+function check(id) {
+  const s = S.steps.find(x => x.id === id);
+  const label = esc(s.label);
+  op({op: 'done', step: id, done: true},
+     `<span class="msg">✓ ${label}</span>
+      <span class="muted">actually finished…</span>
+      <button class="small" onclick="op({op:'adjust',step:'${id}',minutes:5});hideToast()">5 min ago</button>
+      <button class="small" onclick="op({op:'adjust',step:'${id}',minutes:10});hideToast()">10</button>
+      <button class="small" onclick="op({op:'adjust',step:'${id}',minutes:15});hideToast()">15</button>
+      <button class="small" onclick="op({op:'done',step:'${id}',done:false});hideToast()">Undo</button>`);
+}
+
+function stepRow(s) {
+  const when = s.status === 'done' ? `done ${esc(s.done_label)}${s.by ? ' · ' + esc(s.by) : ''}${s.via ? ' (implied)' : ''}`
+    : s.status === 'late' ? `was due ${esc(s.end_label)}`
+    : s.status === 'now' ? `started ${esc(s.start_label)} · until ${esc(s.end_label)}`
+    : s.status === 'waiting' ? `as soon as the turkey's out`
+    : s.status === 'skipped' ? 'skipped'
+    : s.status === 'missed' ? `missed (was ${esc(s.start_label)}) · optional`
+    : `${esc(s.start_label)} · ${s.minutes} min`;
+  const res = s.temp ? ` · ${s.resource} ${s.temp}°F` : s.resource !== 'none' ? ` · ${s.resource}` : '';
+  const whoTag = s.who ? ` · <span style="color:#f472b6">${esc(s.who)}</span>` : '';
+  let act = '';
+  if (s.status === 'done') act = `<button class="small" onclick="op({op:'done',step:'${s.id}',done:false})">undo</button>`;
+  else if (s.status === 'skipped') act = `<button class="small" onclick="op({op:'skip',step:'${s.id}',skipped:false})">unskip</button>`;
+  else if (s.status === 'now' || s.status === 'late' || s.status === 'waiting') act = `<button class="primary" onclick="check('${s.id}')">${esc(s.check_label)}</button>`;
+  else act = `<button class="small" onclick="check('${s.id}')">${esc(s.check_label)}</button>`
+    + (s.optional ? ` <button class="small" onclick="op({op:'skip',step:'${s.id}',skipped:true})">skip</button>` : '');
+  return `<div class="step ${s.status}" style="--c:${s.color}">
+    <div class="box" onclick="this.parentNode.classList.toggle('open')">${s.status === 'done' ? '✓' : ''}</div>
+    <div class="txt" onclick="this.parentNode.classList.toggle('open')"><div class="lbl">${esc(s.emoji)} ${esc(s.label)}${whoTag}</div><div class="meta">${when}${res}</div></div>
+    <div class="act">${act}</div></div><div class="notes">${esc(s.notes)}</div>`;
+}
+
+function render() {
+  const now = new Date(S.now);
+  $('clock').textContent = now.toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'});
+  const h = $('hero'); h.className = 'card hero ' + S.hero.tone;
+  h.innerHTML = `<div class="big">${esc(S.hero.big)}</div><div class="sub">${esc(S.hero.sub)}</div>`;
+  $('dinner').textContent = S.dinner_label;
+  $('proj').textContent = S.projected_label ? `(realistically ~${S.projected_label})` : '';
+  const up = $('useproj'); up.style.display = S.projected_at_hidden ? 'none' : (S.projected_dinner_at ? '' : 'none');
+  if (S.projected_dinner_at) { up.textContent = `make it ${S.projected_label}`; up.onclick = () => op({op: 'settings', dinner_at: S.projected_dinner_at}); }
+  $('lb').textContent = S.turkey_lb; $('roast').textContent = `${Math.floor(S.roast_minutes / 60)}h${String(S.roast_minutes % 60).padStart(2, '0')}`;
+  $('progress').textContent = `${S.progress.done}/${S.progress.total} done`;
+  $('conflicts').textContent = S.conflicts.join(' · ');
+  const by = Object.fromEntries(S.steps.map(s => [s.id, s]));
+  const active = S.steps.filter(s => s.kind !== 'passive');
+  const nowIds = [...S.board.late, ...S.board.now];
+  $('now').innerHTML = nowIds.map(id => stepRow(by[id])).join('') || '<div class="muted" style="padding:6px 8px">Nothing on the stove right now.</div>';
+  const nextIds = active.filter(s => s.status === 'soon').map(s => s.id);
+  const laterIds = active.filter(s => ['later', 'skipped', 'missed'].includes(s.status)).map(s => s.id);
+  $('next').innerHTML = nextIds.map(id => stepRow(by[id])).join('') || '<div class="muted" style="padding:6px 8px">Nothing in the next 15 minutes.</div>';
+  $('later').innerHTML = laterIds.map(id => stepRow(by[id])).join('');
+  const doneIds = active.filter(s => s.status === 'done').map(s => s.id);
+  $('donesum').textContent = `Done (${doneIds.length})`;
+  $('done').innerHTML = doneIds.map(id => stepRow(by[id])).join('');
+  // kelsey
+  const k = S.kelsey; const kc = $('kelsey'); kc.className = 'card kelsey ' + k.status;
+  $('kname').textContent = k.name; $('keta').textContent = k.headline; $('ksub').textContent = k.sub; $('ksvg').innerHTML = k.svg;
+  let ctl = '';
+  if (k.status === 'pending') {
+    ctl = `<div class="row"><button class="go" onclick="op({op:'kelsey',kind:'depart'})">🚗 ${esc(k.name)}'s on the road!</button>
+      <button class="small" onclick="op({op:'kelsey',kind:'depart',minutes_ago:15})">left 15 min ago</button>
+      <button class="small" onclick="op({op:'kelsey',kind:'depart',minutes_ago:30})">30 min ago</button></div>
+      <div class="row"><label>or she left at</label><input type="time" id="deptime"><button class="small" onclick="op({op:'kelsey',kind:'depart',time:$('deptime').value})">set</button></div>`;
+  } else if (k.status !== 'arrived') {
+    ctl = `<div class="row"><label>She just passed…</label>${k.cities.map(c => `<button class="small" onclick="op({op:'kelsey',kind:'waypoint',label:'${c}',minutes_ago:+($('ago').value||0)})">${c}</button>`).join('')}
+        <select id="ago" style="font:inherit;padding:8px;border-radius:10px;background:rgba(255,255,255,.1);color:inherit;border:0;min-height:44px"><option value="0">just now</option><option value="10">10 min ago</option><option value="20">20 min ago</option><option value="30">30 min ago</option></select></div>
+      <div class="row"><label>Her phone says ETA</label><input type="time" id="eta"><button class="small" onclick="if($('eta').value)op({op:'kelsey',kind:'eta',eta:$('eta').value})">save</button>
+        <button class="small" onclick="op({op:'kelsey',kind:'stop',minutes:20})">☕ 20 min stop</button></div>
+      <div class="row"><button class="go" id="arrive" onclick="arrive()">🎉 She's here!</button>
+        <button class="small" onclick="op({op:'kelsey_undo'})">↩ undo last Kelsey update</button></div>`;
+  } else {
+    ctl = `<div class="row"><button class="small" onclick="op({op:'kelsey_undo'})">↩ not here yet, undo</button></div>`;
+  }
+  $('kctl').innerHTML = ctl;
+  // tv
+  const modes = [['rotate', 'Rotate'], ['thanksgiving', 'Thanksgiving only'], ['family', 'Family only']];
+  $('tv').innerHTML = `<span class="muted">TV shows:</span>` + modes.map(([m, l]) => `<button class="chip small ${S.tv.mode===m?'on':''}" onclick="op({op:'tv_mode',mode:'${m}'})">${l}</button>`).join('');
+  $('undo').disabled = !S.undo_depth;
+}
+
+function arrive() {
+  if (pendingArrive && Date.now() - pendingArrive < 4000) { pendingArrive = 0; op({op: 'kelsey', kind: 'arrive'}); return; }
+  pendingArrive = Date.now(); const b = $('arrive'); b.textContent = 'Tap again to confirm 🎉'; setTimeout(() => { if (b) b.textContent = "🎉 She's here!"; pendingArrive = 0; }, 4000);
+}
+
+renderWho(); load();
+setInterval(() => { if (!document.activeElement || !['INPUT', 'SELECT'].includes(document.activeElement.tagName)) load(); }, 10000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
+</script>
+</body></html>

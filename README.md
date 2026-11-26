@@ -76,12 +76,25 @@ All settings are environment variables — see [`deploy/.env.example`](deploy/.e
 | `STAR_SWEEP` / `STAR_SWEEP_AT` | `off` / `22:00` | nightly move of every kid's stars into the family profile (**writes to Skylight**) |
 | `GRABS_NOTE` | `ask a grown-up before you start` | text under "Up for grabs" |
 
+## Thanksgiving mode
+
+Set `TG_DATE` (plus `TG_DINNER_AT`, `TG_TURKEY_LB`, see `.env.example`) and on that day
+the TV rotates between the family screen and a **Thanksgiving screen**: a cooking
+timeline for the whole meal computed backwards from dinner time and turkey weight (USDA
+325 °F chart), "right now / next" with countdowns, lanes per dish with a NOW line, and a
+tracker for a guest driving up I-5 from Eugene (time-vs-miles chart with a car wearing
+their photo). Phones on the LAN open `PUBLIC_URL/tg` to check steps off, nudge dinner
+time, and tap "she just passed Portland" / "her phone says 3:15" / "she's here". One tap,
+"Turkey is OUT", re-times the rest, the stuffing, the gravy and the carving. Rotation is
+done server-side (what `/dashboard.jpg` returns), so the Roku app is unchanged. State is
+`data/thanksgiving.json`; `python -m familydash render-tg out.png --at ISO` previews it.
+
 ## Development
 
 ```sh
 python -m venv .venv && . .venv/bin/activate
 pip install -e '.[dev]' && python -m playwright install chromium
-pytest                      # unit + browser layout tests
+pytest                      # unit + browser layout tests (Thanksgiving engine, tracker, store, API too)
 ruff check .
 KIDS=Ada,Max TZ=America/Los_Angeles python -m familydash render-once examples/sample.json out.png --at 2026-11-09T09:10:00-08:00
 ```

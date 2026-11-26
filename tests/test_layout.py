@@ -65,3 +65,30 @@ def test_quiet_day_fits_without_markers(page):
             "family": {"stars": 0, "goal": None}, "grabs": [], "events": [ev(9, 17, "Swim")]}
     r = render(page, data, at(9))
     assert r["left"] and r["right"] and r["markers"] == []
+
+
+def test_thanksgiving_screen_never_overflows(page, tmp_path):
+    """The Thanksgiving screen has no fit step, so its fixed layout must hold all day."""
+    import datetime as dt
+
+    from familydash.config import Config
+    from familydash.render_tg import build_tg_html
+    from familydash.tg_state import Store
+    from tests.conftest import TZ
+    cfg = Config.from_env({"TG_DATE": "2026-11-26", "KELSEY_PLAN_DEPART": "07:00", "DATA_DIR": str(tmp_path),
+                           "TZ": "America/Los_Angeles", "PUBLIC_URL": "http://dash.test:8097"})
+    clock = {"now": dt.datetime(2026, 11, 26, 7, 5, tzinfo=TZ)}
+    store = Store(cfg, clock=lambda: clock["now"])
+    store.apply({"op": "kelsey", "kind": "depart"})
+    for h, m, ops in [(9, 2, []), (11, 30, [{"op": "done", "step": "turkey_prep"}]),
+                      (13, 0, [{"op": "kelsey", "kind": "waypoint", "label": "Tacoma"}]),
+                      (15, 7, [{"op": "kelsey", "kind": "arrive"}, {"op": "done", "step": "turkey_roast"}]),
+                      (16, 20, [{"op": "done", "step": "dinner"}])]:
+        clock["now"] = dt.datetime(2026, 11, 26, h, m, tzinfo=TZ)
+        for op in ops:
+            store.apply(op)
+        page.set_content(build_tg_html(cfg, store.view(), clock["now"]))
+        r = page.evaluate("""() => ['.left', '.right', 'body'].map(s => { const e = document.querySelector(s);
+            return [s, e.scrollHeight <= e.clientHeight + 1 && e.scrollWidth <= e.clientWidth + 1]; })""")
+        assert all(ok for _, ok in r), (h, m, r)
+        assert page.evaluate("() => document.querySelector('.hero .big').textContent.length") > 3

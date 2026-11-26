@@ -18,6 +18,11 @@ def _time(value: str) -> dt.time:
     return dt.time.fromisoformat(value)
 
 
+def _rotate(value: str) -> tuple[int, int]:
+    a, _, b = value.partition(",")
+    return max(60, int(a or 120)), max(60, int(b or 60))     # the TV polls every 30 s: shorter windows get skipped
+
+
 def _bool(value: str | None, default: bool) -> bool:
     if value is None or value == "":
         return default
@@ -62,6 +67,21 @@ class Config:
     star_sweep_at: dt.time = dt.time(22, 0)
     # wording
     grabs_note: str = "ask a grown-up before you start"
+    # Thanksgiving day screen (off unless TG_DATE is set)
+    tg_date: dt.date | None = None
+    tg_dinner_at: dt.time = dt.time(16, 0)
+    tg_turkey_lb: float = 14
+    tg_rotate: tuple[int, int] = (120, 60)                  # seconds of Thanksgiving, then family
+    tg_pin_from: dt.time | None = dt.time(14, 30)           # from here until dinner: Thanksgiving only
+    kelsey_name: str = "Kelsey"
+    kelsey_home_miles: float = 291
+    kelsey_home_minutes: float = 305
+    kelsey_plan_depart: dt.time | None = None
+    kelsey_photo: str = ""
+
+    @property
+    def tg_enabled(self) -> bool:
+        return self.tg_date is not None
 
     @property
     def skylight_enabled(self) -> bool:
@@ -95,4 +115,14 @@ class Config:
             star_sweep=_bool(g("STAR_SWEEP"), default=False),
             star_sweep_at=_time(g("STAR_SWEEP_AT", "22:00")),
             grabs_note=g("GRABS_NOTE", "ask a grown-up before you start"),
+            tg_date=dt.date.fromisoformat(g("TG_DATE")) if g("TG_DATE") else None,
+            tg_dinner_at=_time(g("TG_DINNER_AT", "16:00")),
+            tg_turkey_lb=float(g("TG_TURKEY_LB", "14")),
+            tg_rotate=_rotate(g("TG_ROTATE", "120,60")),
+            tg_pin_from=_time(g("TG_PIN_FROM", "14:30")) if g("TG_PIN_FROM", "14:30") not in ("", "off") else None,
+            kelsey_name=g("KELSEY_NAME", "Kelsey"),
+            kelsey_home_miles=float(g("KELSEY_HOME_MILES", "291")),
+            kelsey_home_minutes=float(g("KELSEY_HOME_MINUTES", "305")),
+            kelsey_plan_depart=_time(g("KELSEY_PLAN_DEPART")) if g("KELSEY_PLAN_DEPART") else None,
+            kelsey_photo=g("KELSEY_PHOTO", ""),
         )

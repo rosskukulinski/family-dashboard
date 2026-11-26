@@ -104,3 +104,11 @@ def test_lanes_and_window():
     assert tg.lanes(steps, ws, we)[0]["dish"] == "Desserts"
     roast = next(x for x in lanes[0]["blocks"] if x["id"] == "turkey_roast")
     assert abs(roast["left"] - 100 * 3.25 / 9) < 1e-6 and abs(roast["width"] - 100 * 3.75 / 9) < 1e-6
+
+
+def test_checks_made_the_night_before_do_not_reanchor():
+    tonight = dt.datetime(2026, 11, 25, 20, 40, tzinfo=TZ)
+    done = {"pie_prep": tonight.isoformat()}
+    b = tg.by_id(tg.schedule(PLAN, T, {"turkey_lb": 14, "done": done}, now=tonight))
+    assert b["pie_prep"].status == "done"
+    assert b["pie_bake"].start == at(8, 55) and b["pie_bake"].status == "later"

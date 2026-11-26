@@ -125,6 +125,10 @@ def schedule(plan: dict, dinner_at: dt.datetime, state: dict | None = None,
     variables = _vars(params)
     tz = dinner_at.tzinfo
     done = {k: _parse(v, tz) for k, v in (state.get("done") or {}).items()}
+    # a check made before the day (trying it out the night before) still counts as done,
+    # but must not pull tomorrow's anchored steps into tonight
+    day_start = dinner_at.replace(hour=0, minute=0, second=0, microsecond=0)
+    anchors = {k: v for k, v in done.items() if v >= day_start}
     raw: dict[str, dict] = {}
     dishes: dict[str, dict] = {}
     for d, s in steps_in_plan(plan):
@@ -141,9 +145,9 @@ def schedule(plan: dict, dinner_at: dt.datetime, state: dict | None = None,
         ref_edge = spec.get("edge", "end")
         base = edge(spec["ref"], ref_edge)
         if which == "start" and ref_edge == "end":     # anchored: follow reality
-            if spec["ref"] in done:
-                base = done[spec["ref"]]
-            elif now is not None and sid not in done:
+            if spec["ref"] in anchors:
+                base = anchors[spec["ref"]]
+            elif spec["ref"] not in done and now is not None and sid not in done:
                 base = max(base, now)
         return base + _minutes(spec.get("delta", 0), variables) * MIN
 

@@ -30,7 +30,7 @@ def test_route_baseline():
 
 def test_pending_shows_the_plan():
     e = kz.estimate(kz.apply([], ROUTE, TZ), ROUTE, at(6, 30), plan_depart=PLAN)
-    assert e.status == "pending" and e.eta == at(12, 25) and e.headline == "leaves ~7:00am" and "20-min stop" in e.sub
+    assert e.status == "pending" and e.eta == at(12, 25) and e.headline == "leaves ~7:00am" and e.sub == "plan: here ~12:25pm · incl. 20-min stop"
     e = kz.estimate(kz.apply([], ROUTE, TZ), ROUTE, at(7, 20), plan_depart=PLAN)
     assert e.headline == "leaving soon…"
 
@@ -76,7 +76,7 @@ def test_chart_has_plan_actual_and_car_with_face():
     e = kz.estimate(s, ROUTE, at(10))
     svg = kz.chart_svg(s, ROUTE, e, at(10), photo="data:image/png;base64,AAAA", plan_depart=PLAN)
     assert svg.count("<polyline") == 2 and '<image href="data:image/png;base64,AAAA"' in svg
-    assert ">Home<" in svg and ">Portland<" in svg and ">Eugene<" in svg
+    assert ">Home<" in svg and ">Portland<" in svg and ">Eugene<" in svg and ">Centralia<" in svg
     assert 'text-anchor="middle" font-size="24" font-weight="800" fill="#fde68a">' in svg      # the ETA label
     svg = kz.chart_svg(kz.apply([], ROUTE, TZ), ROUTE, kz.estimate(kz.apply([], ROUTE, TZ), ROUTE, at(6), plan_depart=PLAN),
                        at(6), photo=None, plan_depart=PLAN)

@@ -210,9 +210,9 @@ def estimate(s: Schedule, route: Route, now: dt.datetime, name="Kelsey",
         if plan_depart:
             eta = plan_depart + dt.timedelta(minutes=route.home_minutes)
             head = f"leaves ~{fmt(plan_depart)}" if now < plan_depart else "leaving soon…"
-            brk = f" with a {route.stop[2]:.0f}-min stop" if route.stop else ""
+            brk = f" · incl. {route.stop[2]:.0f}-min stop" if route.stop else ""
             return Estimate("pending", 0, eta, route.points[0][0], route.home_miles, None, head,
-                            f"plan: here about {fmt(eta)} if she leaves at {fmt(plan_depart)}{brk}")
+                            f"plan: here ~{fmt(eta)}{brk}")
         return Estimate("pending", 0, None, route.points[0][0], route.home_miles, None,
                         "not on the road yet", "tap 'On the road!' when she leaves")
     if s.status == "arrived":
@@ -274,6 +274,8 @@ def chart_svg(s: Schedule, route: Route, est: Estimate, now: dt.datetime, name="
     # city gridlines; labels by priority (Home, then big cities), skipping any that would collide
     priority = {route.points[-1][0]: 0, "Portland": 1, "Tacoma": 1, "Olympia": 2, "Salem": 2, "Eugene": 1,
                 "Kelso": 3, "Centralia": 3, "Albany": 4, "Vancouver": 5, "Seattle": 4}
+    if route.stop:
+        priority[route.stop[0]] = 1                     # label the planned stop: it's the flat step on the plan line
     drawn: list[float] = []
     for label, m, _ in sorted(route.points, key=lambda p: priority.get(p[0], 9)):
         y = Y(m)

@@ -92,6 +92,16 @@ def test_kelsey_ops(store):
     assert v["kelsey"]["status"] == "arrived" and v["hero"]["big"].endswith("Kelsey is here!")
 
 
+def test_night_before_shows_tomorrows_plan(store):
+    tick(store, 20, 0, day=25)
+    v = store.view()
+    assert v["hero"]["big"] == "🦃 Thursday's plan" and "9:50am" in v["hero"]["sub"]
+    assert all(s["status"] == "later" for s in v["steps"] if s["kind"] != "passive")
+    assert v["kelsey"]["headline"] == "leaves ~7:00am" and v["kelsey"]["eta_label"] == "12:05pm"
+    v = store.apply({"op": "kelsey", "kind": "eta", "eta": "12:30"})
+    assert v["kelsey"]["eta"] == at(12, 30).isoformat()                 # HH:MM lands on the plan day
+
+
 def test_day_rollover_forgets_taps_and_pins_but_keeps_settings(store, tmp_path):
     tick(store, 20, 0, day=25)
     store.apply({"op": "settings", "turkey_lb": 15})

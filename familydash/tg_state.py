@@ -22,9 +22,9 @@ def _iso(t: dt.datetime) -> str:
 
 
 def fresh_state(cfg: Config, today: dt.date) -> dict:
-    return {"day": today.isoformat(), "dinner_at": cfg.tg_dinner_at.strftime("%H:%M"), "turkey_lb": cfg.tg_turkey_lb,
-            "convection": False, "tv_mode": "rotate", "done": {}, "skipped": [], "kelsey": {"events": []},
-            "celebrate": None, "undo": []}
+    return {"day": (cfg.tg_date or today).isoformat(), "dinner_at": cfg.tg_dinner_at.strftime("%H:%M"),
+            "turkey_lb": cfg.tg_turkey_lb, "convection": False, "tv_mode": "rotate", "done": {}, "skipped": [],
+            "kelsey": {"events": []}, "celebrate": None, "undo": []}
 
 
 class Store:
@@ -74,9 +74,19 @@ class Store:
                 pass
         os.replace(tmp, self.path)
 
+    def day(self, now: dt.datetime) -> dt.date:
+        """The day the meal is planned for: TG_DATE (so the night before shows tomorrow's
+        plan, not a day-late one), else today."""
+        return self.cfg.tg_date or now.date()
+
     def _roll_day(self, now: dt.datetime) -> None:
-        """A new day keeps the settings and forgets the taps (and any manual TV pin)."""
-        if self.state.get("day") != now.date().isoformat():
+        """Settings survive; taps and TV pins do not: a changed TG_DATE starts fresh, and
+        anything tapped while trying it out the night before vanishes on the morning."""
+        day = self.day(now)
+        wipe = self.state.get("day") != day.isoformat()
+        if self.state.get("prepped_early") and now.date() >= day:
+            wipe = True
+        if wipe:
             keep = {k: self.state.get(k) for k in ("dinner_at", "turkey_lb", "convection")}
             self.state = {**fresh_state(self.cfg, now.date()), **{k: v for k, v in keep.items() if v is not None}}
             self._save()
@@ -94,6 +104,8 @@ class Store:
             if op.get("op") not in ("undo", "tv_mode"):
                 self.state.setdefault("undo", []).append(before)
                 self.state["undo"] = self.state["undo"][-UNDO_DEPTH:]
+            if now.date() < self.day(now) and op.get("op") not in ("settings", "undo", "reset"):
+                self.state["prepped_early"] = True
             self._save()
         self.changed.set()
         return self.view(now)
@@ -104,7 +116,7 @@ class Store:
 
     def dinner_at(self, now: dt.datetime) -> dt.datetime:
         h, m = (int(x) for x in self.state["dinner_at"].split(":"))
-        return now.replace(hour=h, minute=m, second=0, microsecond=0)
+        return dt.datetime.combine(self.day(now), dt.time(h, m), tzinfo=now.tzinfo)
 
     def _apply(self, op: dict, now: dt.datetime, who: str) -> None:
         s, kind = self.state, op["op"]
@@ -114,7 +126,7 @@ class Store:
             if sid not in steps or not steps[sid].checkable:
                 raise ValueError(f"unknown step {sid}")
             if op.get("done", True):
-                at = _parse_when(op.get("at"), now) if op.get("at") else now
+                at = _parse_when(op.get("at"), now, self.day(now)) if op.get("at") else now
                 s["done"][sid] = {"at": _iso(at), "via": None, "by": who}
                 # implied completion: earlier required steps of the same dish, at their planned time
                 for other in sorted(steps.values(), key=lambda x: x.start):
@@ -157,7 +169,7 @@ class Store:
             ev = {"at": _iso(now), "by": who, "kind": op["kind"]}
             when = now - dt.timedelta(minutes=int(op.get("minutes_ago") or 0))
             if op["kind"] in ("depart", "arrive"):
-                ev["time"] = _iso(_parse_when(op.get("time"), now) if op.get("time") else when)
+                ev["time"] = _iso(_parse_when(op.get("time"), now, self.day(now)) if op.get("time") else when)
             elif op["kind"] == "waypoint":
                 route = self.route()
                 label = op["label"]
@@ -166,7 +178,7 @@ class Store:
                     raise ValueError(f"unknown waypoint {label}")
                 ev.update(time=_iso(when), miles=miles, label=label)
             elif op["kind"] == "eta":
-                ev["eta"] = _iso(_parse_when(op["eta"], now))
+                ev["eta"] = _iso(_parse_when(op["eta"], now, self.day(now)))
             elif op["kind"] == "stop":
                 ev["minutes"] = max(1, min(180, int(op["minutes"])))
             else:
@@ -199,7 +211,7 @@ class Store:
 
     def plan_depart(self, now: dt.datetime) -> dt.datetime | None:
         t = self.cfg.kelsey_plan_depart
-        return now.replace(hour=t.hour, minute=t.minute, second=0, microsecond=0) if t else None
+        return dt.datetime.combine(self.day(now), t, tzinfo=now.tzinfo) if t else None
 
     def view(self, now: dt.datetime | None = None) -> dict:
         now = now or self.clock()
@@ -291,6 +303,9 @@ class Store:
             s = bd["next"][0]
             mins = int((s.start - now).total_seconds() // 60)
             when = f"in {mins} min" if mins < 90 else f"at {kz.fmt(s.start)}"
+            if now.date() < dinner.date():
+                return {"big": f"🦃 {dinner:%A}'s plan",
+                        "sub": f"dinner at {kz.fmt(dinner)} · first: {s.label} at {kz.fmt(s.start)}", "tone": "calm"}
             return {"big": "🦃 Happy Thanksgiving",
                     "sub": f"dinner at {kz.fmt(dinner)} · next: {s.label} {when}", "tone": "calm"}
         return {"big": "🦃 Happy Thanksgiving", "sub": f"dinner at {kz.fmt(dinner)}", "tone": "calm"}
@@ -307,11 +322,10 @@ def step_dict(s: tg.Step, now: dt.datetime, done: dict | None) -> dict:
             "minutes_to_start": int((s.start - now).total_seconds() // 60)}
 
 
-def _parse_when(value: str, now: dt.datetime) -> dt.datetime:
-    """'15:15' (today, local) or a full ISO time."""
+def _parse_when(value: str, now: dt.datetime, day: dt.date | None = None) -> dt.datetime:
+    """'15:15' (on the plan day, local) or a full ISO time."""
     if len(value) <= 5:
-        t = dt.time.fromisoformat(value)
-        return now.replace(hour=t.hour, minute=t.minute, second=0, microsecond=0)
+        return dt.datetime.combine(day or now.date(), dt.time.fromisoformat(value), tzinfo=now.tzinfo)
     d = dt.datetime.fromisoformat(value)
     return d if d.tzinfo else d.replace(tzinfo=now.tzinfo)
 

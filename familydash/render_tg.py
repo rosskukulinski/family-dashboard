@@ -51,7 +51,7 @@ def lanes_html(view: dict, now: dt.datetime) -> str:
     dinner = view["_dinner"]
     ws, we = tg.timeline_window(steps, dinner)
     # the afternoon crunch: zoom in once the morning is over
-    if now >= dinner - dt.timedelta(hours=2, minutes=30):
+    if now.date() == dinner.date() and now >= dinner - dt.timedelta(hours=2, minutes=30):
         ws = max(ws, (now - dt.timedelta(hours=1, minutes=30)).replace(minute=0, second=0, microsecond=0))
     lanes = tg.lanes([s for s in steps if s.end >= ws], ws, we)[:MAX_LANES]
     ticks = "".join(f'<span style="left:{p:.2f}%">{t}</span>' for p, t in tg.hour_ticks(ws, we))
@@ -69,9 +69,10 @@ def lanes_html(view: dict, now: dt.datetime) -> str:
                    f'<div class="bars">{"".join(blocks)}</div></div>')
     pn, pd = tg.pct(now, ws, we), tg.pct(dinner, ws, we)
     w = "calc(100% - 230px)"
+    nowline = (f'<div class="nowline" style="left:calc(230px + {w} * {pn / 100:.4f})"></div>'
+               f'<div class="nowtag" style="left:calc(230px + {w} * {pn / 100:.4f})">NOW</div>' if ws <= now <= we else "")
     return (f'<div class="lanes"><div class="lanes-wrap"><div class="tags"></div><div class="axis">{ticks}</div>{"".join(out)}'
-            f'<div class="nowline" style="left:calc(230px + {w} * {pn / 100:.4f})"></div>'
-            f'<div class="nowtag" style="left:calc(230px + {w} * {pn / 100:.4f})">NOW</div>'
+            f'{nowline}'
             f'<div class="dinnerline" style="left:calc(230px + {w} * {pd / 100:.4f})"></div>'
             f'<div class="dinnertag" style="left:calc(230px + {w} * {pd / 100:.4f})">DINNER</div></div></div>')
 

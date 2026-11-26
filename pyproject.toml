@@ -24,7 +24,7 @@ packages = ["familydash"]
 version = { attr = "familydash.__version__" }
 
 [tool.setuptools.package-data]
-familydash = ["style.css"]
+familydash = ["*.css", "*.html", "*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -10,7 +10,7 @@ from . import thanksgiving as tg
 from .config import Config
 
 STYLE = (Path(__file__).parent / "thanksgiving.css").read_text()
-MAX_LANES = 8
+MAX_LANES = 9
 esc = html.escape
 
 
@@ -41,8 +41,8 @@ def board_html(view: dict, now: dt.datetime) -> str:
     by = tg.by_id(view["_steps"])
     current = [by[i] for i in view["board"]["late"]] + [by[i] for i in view["board"]["now"]]
     nxt = [by[i] for i in view["board"]["next"]]
-    cur = "".join(row(s, now) for s in current[:5]) or '<div class="empty">Nothing on the stove</div>'
-    nx = "".join(row(s, now) for s in nxt[:5]) or '<div class="empty">That was the last one</div>'
+    cur = "".join(row(s, now) for s in current[:4]) or '<div class="empty">Nothing on the stove</div>'
+    nx = "".join(row(s, now) for s in nxt[:4]) or '<div class="empty">That was the last one</div>'
     return f'<div class="board"><div><h2 class="now">Right now</h2>{cur}</div><div><h2>Next</h2>{nx}</div></div>'
 
 

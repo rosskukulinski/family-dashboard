@@ -139,3 +139,8 @@ def test_showing_policy(store):
     v = store.apply({"op": "tv_mode", "mode": "thanksgiving"})
     assert showing(at(9, 0, 25), cfg, store, v) == "thanksgiving"        # manual pin works any day (tonight's test)
     assert showing(at(9, 0, 26), Config.from_env({}), None, None) == "family"
+    allday = Config.from_env({"TG_DATE": "2026-11-26", "TG_PIN_FROM": "00:00"})
+    v = store.apply({"op": "tv_mode", "mode": "rotate"})
+    assert showing(at(9, 0, 26), allday, store, v) == "thanksgiving"    # pinned all day beats the family cap
+    v = store.apply({"op": "done", "step": "dinner"})
+    assert showing(at(17, 0, 26), allday, store, v) == "thanksgiving"   # and the after-dinner fallback

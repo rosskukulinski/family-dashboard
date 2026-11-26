@@ -6,7 +6,6 @@ import datetime as dt
 import json
 import os
 import threading
-import time
 from pathlib import Path
 
 from . import kelsey as kz
@@ -341,11 +340,11 @@ def showing(now: dt.datetime, cfg: Config, store: Store | None, view: dict | Non
         return "thanksgiving"
     if now.date() != cfg.tg_date:
         return "family"
-    ts = int(time.mktime(now.timetuple()))
+    ts = int(now.timestamp())
+    if cfg.tg_pin_from and now.time() >= cfg.tg_pin_from:
+        return "thanksgiving"                                          # pinned (TG_PIN_FROM=00:00 = all day)
     if view.get("finished"):
         return "family" if ts % 600 >= 120 else "thanksgiving"       # after dinner: mostly the family screen
-    if cfg.tg_pin_from and now.time() >= cfg.tg_pin_from:
-        return "thanksgiving"                                          # the crunch: pinned
     if ts % 600 < 60:
         return "family"                                                # the kids' stars always come back
     if view.get("urgent"):

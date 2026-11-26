@@ -35,7 +35,9 @@ def test_default_plan_14lb_dinner_at_4():
     assert b["salad_toss"].end == T and b["dinner"].start == T
     assert b["table_set"].who == "Hannah & Elliott"
     assert tg.resource_conflicts(steps) == []
-    assert {d["id"] for d in PLAN["dishes"]} >= {"turkey", "potatoes", "salad", "boxgravy", "gravy", "stuffing", "biscuits"}
+    assert {d["id"] for d in PLAN["dishes"]} >= {"turkey", "potatoes", "salad", "boxgravy", "gravy", "stuffing", "biscuits",
+                                                 "beans"}
+    assert b["beans_trim"].start == at(15, 0) and b["beans_steam"].end == at(15, 56)
 
 
 def test_statuses_mid_roast():
@@ -47,7 +49,7 @@ def test_statuses_mid_roast():
     assert b["turkey_temp_check"].start == at(11, 20) + dt.timedelta(minutes=round(225 * .75))
     assert b["potato_boil"].status == "now" and b["potato_peel"].status == "late" and b["table_set"].status == "later"
     bd = tg.board(steps, at(14, 50), T)
-    assert bd["next"][0].id == "stuffing_bake" and len({s.dish_id for s in bd["next"]}) == len(bd["next"])
+    assert {s.id for s in bd["next"]} >= {"stuffing_bake", "beans_trim"} and len({s.dish_id for s in bd["next"]}) == len(bd["next"])
 
 
 def test_late_turkey_makes_dependents_wait_not_late():
@@ -94,6 +96,6 @@ def test_lanes_and_window():
     ws, we = tg.timeline_window(steps, T)
     assert (ws, we) == (at(9), at(17))
     lanes = tg.lanes(steps, ws, we)
-    assert lanes[0]["dish"] == "Turkey" and len(lanes) == 8
+    assert lanes[0]["dish"] == "Turkey" and len(lanes) == 9
     roast = next(x for x in lanes[0]["blocks"] if x["id"] == "turkey_roast")
     assert abs(roast["left"] - 100 * 2.25 / 8) < 1e-6 and abs(roast["width"] - 100 * 3.75 / 8) < 1e-6

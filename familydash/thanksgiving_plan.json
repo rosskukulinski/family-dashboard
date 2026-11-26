@@ -72,6 +72,14 @@
        "duration": 15, "end": -5, "resource": "oven", "temp": 350,
        "notes": "Pop the can, biscuits 2 inches apart on an ungreased sheet, 13 to 17 minutes at 350°F until golden. They share the oven with the stuffing. Into a towel-lined basket."}
     ]},
+    {"id": "beans", "name": "Green beans", "emoji": "🫛", "color": "#4ade80", "steps": [
+      {"id": "beans_trim", "label": "Trim the green beans", "check_label": "Trimmed",
+       "duration": 10, "start": -60, "resource": "counter",
+       "notes": "Snap or cut off the stem ends, rinse. Into the steamer basket over an inch of water, lid on, burner off until it's time."},
+      {"id": "beans_steam", "label": "Steam the green beans", "check_label": "Beans done",
+       "duration": 8, "end": -4, "resource": "stovetop",
+       "notes": "Bring the water to a boil, lid on, 5 to 7 minutes until bright green and just tender. Toss with butter, salt and pepper (lemon zest or toasted almonds if you like)."}
+    ]},
     {"id": "salad", "name": "Salad", "emoji": "🥗", "color": "#34d399", "steps": [
       {"id": "salad_prep", "label": "Salad prep", "check_label": "Prepped",
        "duration": 10, "start": -30, "resource": "counter",

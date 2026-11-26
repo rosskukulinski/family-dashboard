@@ -113,6 +113,12 @@
 
 <script>
 let S = null, timer = null, lastOk = Date.now(), pendingArrive = 0;
+const OPEN = new Set(JSON.parse(sessionStorage.tgopen || '[]'));   // expanded rows survive the 10 s refresh
+function toggleOpen(id, el) {
+  if (OPEN.has(id)) OPEN.delete(id); else OPEN.add(id);
+  el.classList.toggle('open', OPEN.has(id));
+  sessionStorage.tgopen = JSON.stringify([...OPEN]);
+}
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const who = () => localStorage.tgwho || '';
@@ -179,9 +185,9 @@ function stepRow(s) {
   else if (s.status === 'now' || s.status === 'late' || s.status === 'waiting') act = `<button class="primary" onclick="check('${s.id}')">${esc(s.check_label)}</button>`;
   else act = `<button class="small" onclick="check('${s.id}')">${esc(s.check_label)}</button>`
     + (s.optional ? ` <button class="small" onclick="op({op:'skip',step:'${s.id}',skipped:true})">skip</button>` : '');
-  return `<div class="step ${s.status}" style="--c:${s.color}">
-    <div class="box" onclick="this.parentNode.classList.toggle('open')">${s.status === 'done' ? '✓' : ''}</div>
-    <div class="txt" onclick="this.parentNode.classList.toggle('open')"><div class="lbl">${esc(s.emoji)} ${esc(s.label)}${whoTag}</div><div class="meta">${when}${res}</div></div>
+  return `<div class="step ${s.status}${OPEN.has(s.id) ? ' open' : ''}" style="--c:${s.color}">
+    <div class="box" onclick="toggleOpen('${s.id}', this.parentNode)">${s.status === 'done' ? '✓' : ''}</div>
+    <div class="txt" onclick="toggleOpen('${s.id}', this.parentNode)"><div class="lbl">${esc(s.emoji)} ${esc(s.label)}${whoTag}</div><div class="meta">${when}${res}</div></div>
     <div class="act">${act}</div></div><div class="notes">${esc(s.notes)}</div>`;
 }
 

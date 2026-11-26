@@ -290,7 +290,7 @@
           "label": "Cherry cheesecake with Kelsey",
           "check_label": "In the fridge",
           "duration": 30,
-          "start": -210,
+          "start": -180,
           "resource": "counter",
           "after_guest": true,
           "notes": "Once Kelsey's here. Crumb crust pressed into the pan; beat cream cheese, sugar and vanilla smooth, fold in the whipped topping, spread over the crust. Cherry pie filling on top (or at serving). Chill at least 3 hours."

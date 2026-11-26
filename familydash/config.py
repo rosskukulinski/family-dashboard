@@ -23,6 +23,13 @@ def _rotate(value: str) -> tuple[int, int]:
     return max(60, int(a or 120)), max(60, int(b or 60))     # the TV polls every 30 s: shorter windows get skipped
 
 
+def _stop(value: str) -> tuple[str, float] | None:
+    if value.strip().lower() in ("", "off", "none", "0"):
+        return None
+    label, _, minutes = value.partition(":")
+    return label.strip(), float(minutes or 20)
+
+
 def _bool(value: str | None, default: bool) -> bool:
     if value is None or value == "":
         return default
@@ -78,6 +85,7 @@ class Config:
     kelsey_home_minutes: float = 305
     kelsey_plan_depart: dt.time | None = None
     kelsey_photo: str = ""
+    kelsey_stop: tuple[str, float] | None = ("Centralia", 20)   # planned break; KELSEY_STOP=off for none
 
     @property
     def tg_enabled(self) -> bool:
@@ -125,4 +133,5 @@ class Config:
             kelsey_home_minutes=float(g("KELSEY_HOME_MINUTES", "305")),
             kelsey_plan_depart=_time(g("KELSEY_PLAN_DEPART")) if g("KELSEY_PLAN_DEPART") else None,
             kelsey_photo=g("KELSEY_PHOTO", ""),
+            kelsey_stop=_stop(g("KELSEY_STOP", "Centralia:20")),
         )

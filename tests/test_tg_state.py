@@ -31,7 +31,7 @@ def test_fresh_view_and_persistence(store):
     v = store.view()
     assert v["dinner_label"] == "4:00pm" and v["turkey_lb"] == 14 and v["roast_minutes"] == 225
     assert v["hero"]["big"] == "🦃 Happy Thanksgiving" and "Make the pumpkin pie in 30 min" in v["hero"]["sub"]
-    assert v["kelsey"]["status"] == "pending" and v["kelsey"]["eta_label"] == "12:05pm"
+    assert v["kelsey"]["status"] == "pending" and v["kelsey"]["eta_label"] == "12:25pm"
     assert "<svg" in v["kelsey"]["svg"]
     store.apply({"op": "settings", "turkey_lb": 16})
     again = Store(store.cfg, clock=store.clock)
@@ -77,14 +77,14 @@ def test_dinner_time_moves(store):
 def test_kelsey_ops(store):
     tick(store, 7, 10)
     v = store.apply({"op": "kelsey", "kind": "depart", "minutes_ago": 10}, who="Ross")
-    assert v["kelsey"]["departed_at"] == at(7, 0).isoformat() and v["kelsey"]["eta_label"] == "12:05pm"
+    assert v["kelsey"]["departed_at"] == at(7, 0).isoformat() and v["kelsey"]["eta_label"] == "12:25pm"
     tick(store, 9, 5)
     v = store.apply({"op": "kelsey", "kind": "waypoint", "label": "portland", "minutes_ago": 5})
     assert v["kelsey"]["where"] == "near Portland"
-    v = store.apply({"op": "kelsey", "kind": "eta", "eta": "12:40"})
-    assert v["kelsey"]["eta_label"] == "12:40pm"
+    v = store.apply({"op": "kelsey", "kind": "eta", "eta": "13:10"})
+    assert v["kelsey"]["eta_label"] == "1:10pm"
     v = store.apply({"op": "kelsey_undo"})
-    assert v["kelsey"]["eta_label"] != "12:40pm"
+    assert v["kelsey"]["eta_label"] == "12:40pm"                         # back to the Portland-based estimate
     with pytest.raises(ValueError):
         store.apply({"op": "kelsey", "kind": "waypoint", "label": "Boise"})
     tick(store, 12, 31)
@@ -97,7 +97,7 @@ def test_night_before_shows_tomorrows_plan(store):
     v = store.view()
     assert v["hero"]["big"] == "🦃 Thursday's plan" and "Make the pumpkin pie at 8:30am" in v["hero"]["sub"]
     assert all(s["status"] == "later" for s in v["steps"] if s["kind"] != "passive")
-    assert v["kelsey"]["headline"] == "leaves ~7:00am" and v["kelsey"]["eta_label"] == "12:05pm"
+    assert v["kelsey"]["headline"] == "leaves ~7:00am" and v["kelsey"]["eta_label"] == "12:25pm"
     v = store.apply({"op": "kelsey", "kind": "eta", "eta": "12:30"})
     assert v["kelsey"]["eta"] == at(12, 30).isoformat()                 # HH:MM lands on the plan day
 

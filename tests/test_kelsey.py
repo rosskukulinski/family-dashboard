@@ -4,7 +4,8 @@ import datetime as dt
 from familydash import kelsey as kz
 from tests.conftest import TZ
 
-ROUTE = kz.Route.default("Home", 291, 305)
+ROUTE = kz.Route.default("Home", 291, 305)                     # with the default 20-min Centralia stop
+NONSTOP = kz.Route.default("Home", 291, 305, stop=None)
 PLAN = dt.datetime(2026, 11, 26, 7, 0, tzinfo=TZ)
 
 
@@ -17,27 +18,29 @@ def ev(kind, h, m=0, **kw):
 
 
 def test_route_baseline():
-    assert ROUTE.points[0][0] == "Eugene" and ROUTE.points[-1] == ("Home", 291.0, 305.0)
+    assert ROUTE.points[0][0] == "Eugene" and ROUTE.points[-1] == ("Home", 291.0, 325.0)
+    assert NONSTOP.points[-1] == ("Home", 291.0, 305.0) and ROUTE.without_stop().points == NONSTOP.points
+    assert ROUTE.minutes_at(196) == 194 and ROUTE.miles_at(204) == 196          # parked at Centralia
     assert [c for c, _ in ROUTE.cities] == ["Albany", "Salem", "Portland", "Vancouver", "Kelso", "Centralia", "Olympia",
                                             "Tacoma", "Seattle"]
-    assert ROUTE.minutes_at(106) == 105 and round(ROUTE.miles_at(105)) == 106
+    assert ROUTE.minutes_at(106) == 105 and round(ROUTE.miles_at(105)) == 106 and ROUTE.minutes_at(247) == 266
     assert ROUTE.where(108) == "near Portland" and ROUTE.where(130) == "between Vancouver and Kelso"
     assert kz.Route.default("Home", 255, 255).points[-2][0] == "Tacoma"    # a home before Seattle truncates
 
 
 def test_pending_shows_the_plan():
     e = kz.estimate(kz.apply([], ROUTE, TZ), ROUTE, at(6, 30), plan_depart=PLAN)
-    assert e.status == "pending" and e.eta == at(12, 5) and e.headline == "leaves ~7:00am"
+    assert e.status == "pending" and e.eta == at(12, 25) and e.headline == "leaves ~7:00am" and "20-min stop" in e.sub
     e = kz.estimate(kz.apply([], ROUTE, TZ), ROUTE, at(7, 20), plan_depart=PLAN)
     assert e.headline == "leaving soon…"
 
 
 def test_depart_and_waypoint_keep_pace_but_move_the_anchor():
     s = kz.apply([ev("depart", 7, 5, time=at(7, 5).isoformat())], ROUTE, TZ)
-    assert s.eta(ROUTE) == at(12, 10)
+    assert s.eta(ROUTE) == at(12, 30)
     s = kz.apply([ev("depart", 7, 5, time=at(7, 5).isoformat()),
                   ev("waypoint", 9, 12, time=at(9, 10).isoformat(), miles=106, label="Portland")], ROUTE, TZ)
-    assert s.eta(ROUTE) == at(9, 10) + dt.timedelta(minutes=200)       # 20 min late to Portland = 20 min later home
+    assert s.eta(ROUTE) == at(9, 10) + dt.timedelta(minutes=220)       # 20 min late to Portland = 20 min later home
     e = kz.estimate(s, ROUTE, at(10), ROUTE)
     assert e.status == "driving" and 140 < e.miles < 160 and "updated 48 min ago by Ross" in e.sub
 
@@ -52,7 +55,7 @@ def test_phone_eta_is_honoured_exactly():
 def test_stop_overdue_and_arrival():
     s = kz.apply([ev("depart", 7, 0, time=at(7, 0).isoformat()), ev("stop", 9, 0, minutes=30)], ROUTE, TZ)
     assert kz.estimate(s, ROUTE, at(9, 10)).status == "stopped"
-    assert s.eta(ROUTE) == at(12, 35)
+    assert s.stop_taken and s.eta(ROUTE) == at(12, 35)                 # a logged stop replaces the planned 20, not adds to it
     s = kz.apply([ev("depart", 7, 0, time=at(7, 0).isoformat()), ev("eta", 9, 0, eta=at(11, 30).isoformat())], ROUTE, TZ)
     e = kz.estimate(s, ROUTE, at(11, 50))
     assert e.status == "overdue" and e.headline == "Any minute now…" and e.urgent     # never auto-arrives
@@ -88,3 +91,14 @@ def test_photo_uri(tmp_path):
     big = tmp_path / "big.png"
     big.write_bytes(b"0" * 300_000)
     assert kz.photo_uri(big) is None
+
+
+def test_planned_stop_shows_as_a_pit_stop_and_passes():
+    s = kz.apply([ev("depart", 7, 0, time=at(7, 0).isoformat())], ROUTE, TZ)
+    e = kz.estimate(s, ROUTE, at(10, 25))                                  # 205 min: inside the 194..214 break
+    assert e.miles == 196 and "pit stop near Centralia" in e.sub
+    e = kz.estimate(s, ROUTE, at(10, 40))
+    assert e.miles > 196 and "pit stop" not in e.sub
+    s = kz.apply([ev("depart", 7, 0, time=at(7, 0).isoformat()),
+                  ev("waypoint", 10, 30, time=at(10, 30).isoformat(), miles=219, label="Olympia")], ROUTE, TZ)
+    assert s.eta(ROUTE) == at(10, 30) + dt.timedelta(minutes=325 - 236)  # stop already behind her

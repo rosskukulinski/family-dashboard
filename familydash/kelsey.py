@@ -33,11 +33,36 @@ MIN = dt.timedelta(minutes=1)
 @dataclass(frozen=True)
 class Route:
     points: tuple[tuple[str, float, float], ...]      # (label, miles, baseline minutes); last = Home
+    stop: tuple[str, float, float] | None = None      # planned break: (label, miles, minutes)
 
     @classmethod
-    def default(cls, home_label="Home", home_miles=291.0, home_minutes=305.0) -> Route:
+    def default(cls, home_label="Home", home_miles=291.0, home_minutes=305.0,
+                stop: tuple[str, float] | None = ("Centralia", 20)) -> Route:
+        """No-traffic baseline plus an optional planned break at a waypoint: the clock
+        stands still there for `minutes`, so the plan line shows a flat step."""
         pts = [p for p in DEFAULT_ROUTE if p[1] < home_miles - 3]      # a home before Seattle just truncates
-        return cls(tuple(pts + [(home_label, float(home_miles), float(home_minutes))]))
+        pts = pts + [(home_label, float(home_miles), float(home_minutes))]
+        stop_at = next(((lbl, m) for lbl, m, _ in pts if stop and lbl.lower() == stop[0].lower()), None)
+        if not stop or not stop_at or stop[1] <= 0:
+            return cls(tuple(pts))
+        out = []
+        for lbl, m, t in pts:
+            out.append((lbl, m, t + (stop[1] if m > stop_at[1] else 0)))
+            if m == stop_at[1]:
+                out.append((lbl, m, t + stop[1]))                      # leave the stop
+        return cls(tuple(out), (stop_at[0], stop_at[1], float(stop[1])))
+
+    def without_stop(self) -> Route:
+        """The same route once the break has been taken (or logged by hand)."""
+        if not self.stop:
+            return self
+        out, seen = [], set()
+        for lbl, m, t in self.points:
+            if (lbl, m) in seen:
+                continue
+            seen.add((lbl, m))
+            out.append((lbl, m, t - (self.stop[2] if m > self.stop[1] else 0)))
+        return Route(tuple(out))
 
     @property
     def home_miles(self) -> float:
@@ -50,7 +75,11 @@ class Route:
     @property
     def cities(self) -> list[tuple[str, float]]:
         """Tappable waypoints: everything but Eugene and Home."""
-        return [(label, m) for label, m, _ in self.points[1:-1]]
+        out: list[tuple[str, float]] = []
+        for label, m, _ in self.points[1:-1]:
+            if (label, m) not in out:
+                out.append((label, m))
+        return out
 
     def minutes_at(self, miles: float) -> float:
         return _interp(miles, [(m, t) for _, m, t in self.points])
@@ -72,7 +101,7 @@ def _interp(x: float, pts: list[tuple[float, float]]) -> float:
         return pts[0][1]
     for (x0, y0), (x1, y1) in zip(pts, pts[1:], strict=False):
         if x <= x1:
-            return y0 + (y1 - y0) * (x - x0) / (x1 - x0)
+            return y0 if x1 == x0 else y0 + (y1 - y0) * (x - x0) / (x1 - x0)
     return pts[-1][1]
 
 
@@ -89,12 +118,17 @@ class Schedule:
     last_by: str = ""
     last_kind: str = ""
     fixes: list[tuple[dt.datetime, float]] = field(default_factory=list)
+    stop_taken: bool = False                # a logged stop replaces the planned one
+
+    def route(self, route: Route) -> Route:
+        return route.without_stop() if self.stop_taken else route
 
     def miles_at(self, route: Route, t: dt.datetime) -> float:
         if self.status == "pending" or self.t0 is None:
             return 0.0
         if self.status == "arrived":
             return route.home_miles
+        route = self.route(route)
         elapsed = max(0.0, (t - self.t0).total_seconds() / 60)
         return min(route.home_miles, route.miles_at(route.minutes_at(self.m0) + elapsed / self.pace))
 
@@ -103,6 +137,7 @@ class Schedule:
             return self.held_eta
         if self.t0 is None:
             return None
+        route = self.route(route)
         remaining = (route.home_minutes - route.minutes_at(self.m0)) * self.pace
         return self.t0 + dt.timedelta(minutes=remaining)
 
@@ -131,7 +166,8 @@ def apply(events: list[dict], route: Route, tz) -> Schedule:
             if s.status != "driving":
                 s.status, s.departed_at, s.fixes = "driving", s.departed_at or at, s.fixes or [(at, 0.0)]
             m_now = s.miles_at(route, at)
-            remaining_base = route.home_minutes - route.minutes_at(m_now)
+            r = s.route(route)
+            remaining_base = r.home_minutes - r.minutes_at(m_now)
             eta = _t(e["eta"], tz)
             actual = (eta - at).total_seconds() / 60
             if remaining_base >= 5 and actual > 0:
@@ -141,6 +177,8 @@ def apply(events: list[dict], route: Route, tz) -> Schedule:
         elif k == "stop":
             if s.status == "driving":
                 m_now = s.miles_at(route, at)
+                if route.stop and not s.stop_taken and m_now <= route.stop[1] + 1:
+                    s.stop_taken = True                # this is the break we planned for
                 s.t0, s.m0 = at + dt.timedelta(minutes=float(e["minutes"])), m_now
                 if s.held_eta:
                     s.held_eta += dt.timedelta(minutes=float(e["minutes"]))
@@ -172,8 +210,9 @@ def estimate(s: Schedule, route: Route, now: dt.datetime, name="Kelsey",
         if plan_depart:
             eta = plan_depart + dt.timedelta(minutes=route.home_minutes)
             head = f"leaves ~{fmt(plan_depart)}" if now < plan_depart else "leaving soon…"
+            brk = f" with a {route.stop[2]:.0f}-min stop" if route.stop else ""
             return Estimate("pending", 0, eta, route.points[0][0], route.home_miles, None, head,
-                            f"plan: here about {fmt(eta)} if she leaves at {fmt(plan_depart)}")
+                            f"plan: here about {fmt(eta)} if she leaves at {fmt(plan_depart)}{brk}")
         return Estimate("pending", 0, None, route.points[0][0], route.home_miles, None,
                         "not on the road yet", "tap 'On the road!' when she leaves")
     if s.status == "arrived":
@@ -194,6 +233,8 @@ def estimate(s: Schedule, route: Route, now: dt.datetime, name="Kelsey",
     stale = since is not None and since > 90
     head = f"ETA {'~' if stale else ''}{fmt(eta)}"
     sub = f"{route.where(miles)} · {remaining:.0f} mi to go"
+    if route.stop and not s.stop_taken and abs(miles - route.stop[1]) < 0.5:
+        sub = f"☕ probably a pit stop near {route.stop[0]} · {remaining:.0f} mi to go"
     if since is not None:
         sub += f" · updated {ago(since)}" + (f" by {s.last_by}" if s.last_by else "")
     if stale:

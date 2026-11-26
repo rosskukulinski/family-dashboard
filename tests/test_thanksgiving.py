@@ -39,7 +39,7 @@ def test_default_plan_14lb_dinner_at_4():
                                                  "beans", "desserts"}
     assert b["beans_trim"].start == at(12, 30) and b["beans_steam"].end == at(15, 56)
     assert b["biscuits_tray"].end == at(15, 35) and b["pie_bake"].end == at(9, 55) and b["pie_bake"].temp == 425
-    assert b["cheesecake_make"].start == at(12, 30) and b["cheesecake_make"].after_guest
+    assert b["cheesecake_make"].start == at(13, 0) and b["cheesecake_make"].after_guest
 
 
 def test_statuses_mid_roast():

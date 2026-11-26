@@ -206,7 +206,7 @@ class Store:
 
     # -- derived -------------------------------------------------------------------
     def route(self) -> kz.Route:
-        return kz.Route.default("Home", self.cfg.kelsey_home_miles, self.cfg.kelsey_home_minutes)
+        return kz.Route.default("Home", self.cfg.kelsey_home_miles, self.cfg.kelsey_home_minutes, self.cfg.kelsey_stop)
 
     def plan_depart(self, now: dt.datetime) -> dt.datetime | None:
         t = self.cfg.kelsey_plan_depart

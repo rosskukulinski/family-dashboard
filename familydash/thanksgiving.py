@@ -8,7 +8,7 @@ given by any two of start / end / duration:
   * {"max": [spec, spec]}                      the later of several
 A step whose start follows another step's *end* is "anchored": once that step is checked
 off, the anchored step re-flows from the actual time instead of the plan (so one tap,
-"Turkey is OUT", re-times the rest, the gravy, the stuffing and the carving).
+"Turkey is out of the oven", re-times the rest, the gravy, the stuffing and the carving).
 """
 from __future__ import annotations
 

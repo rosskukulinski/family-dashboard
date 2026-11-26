@@ -85,7 +85,7 @@ timeline for the whole meal computed backwards from dinner time and turkey weigh
 tracker for a guest driving up I-5 from Eugene (time-vs-miles chart with a car wearing
 their photo). Phones on the LAN open `PUBLIC_URL/tg` to check steps off, nudge dinner
 time, and tap "she just passed Portland" / "her phone says 3:15" / "she's here". One tap,
-"Turkey is OUT", re-times the rest, the stuffing, the gravy and the carving. Rotation is
+"Turkey is out of the oven", re-times the rest, the stuffing, the gravy and the carving. Rotation is
 done server-side (what `/dashboard.jpg` returns), so the Roku app is unchanged. State is
 `data/thanksgiving.json`; `python -m familydash render-tg out.png --at ISO` previews it.
 

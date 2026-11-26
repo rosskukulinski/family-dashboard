@@ -58,8 +58,8 @@
         },
         {
           "id": "turkey_prep",
-          "label": "Season the bird",
-          "check_label": "Into the oven!",
+          "label": "Season the bird, into the oven",
+          "check_label": "Turkey is in the oven",
           "duration": 20,
           "end": {
             "var": "roast",
@@ -72,7 +72,7 @@
         {
           "id": "turkey_roast",
           "label": "Roast at 325°F",
-          "check_label": "Turkey is OUT",
+          "check_label": "Turkey is out of the oven",
           "duration": {
             "var": "roast"
           },

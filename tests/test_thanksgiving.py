@@ -49,7 +49,8 @@ def test_statuses_mid_roast():
     assert b["turkey_temp_check"].start == at(11, 20) + dt.timedelta(minutes=round(225 * .75))
     assert b["potato_boil"].status == "now" and b["potato_peel"].status == "late" and b["table_set"].status == "later"
     bd = tg.board(steps, at(14, 50), T)
-    assert {s.id for s in bd["next"]} >= {"stuffing_bake", "beans_trim"} and len({s.dish_id for s in bd["next"]}) == len(bd["next"])
+    assert {s.id for s in bd["next"]} >= {"stuffing_bake", "beans_trim"}
+    assert len({s.dish_id for s in bd["next"]}) == len(bd["next"])
 
 
 def test_late_turkey_makes_dependents_wait_not_late():

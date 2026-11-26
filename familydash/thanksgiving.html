@@ -167,7 +167,7 @@ function stepRow(s) {
   const when = s.status === 'done' ? `done ${esc(s.done_label)}${s.by ? ' · ' + esc(s.by) : ''}${s.via ? ' (implied)' : ''}`
     : s.status === 'late' ? `was due ${esc(s.end_label)}`
     : s.status === 'now' ? `started ${esc(s.start_label)} · until ${esc(s.end_label)}`
-    : s.status === 'waiting' ? `as soon as the turkey's out`
+    : s.status === 'waiting' ? (s.waiting_on === 'guest' ? `once ${esc(S.kelsey.name)} is here` : `as soon as the turkey's out`)
     : s.status === 'skipped' ? 'skipped'
     : s.status === 'missed' ? `missed (was ${esc(s.start_label)}) · optional`
     : `${esc(s.start_label)} · ${s.minutes} min`;

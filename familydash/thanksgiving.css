@@ -51,7 +51,7 @@ body {
 .tags { position: relative; height: 26px; margin-left: 230px; }
 .axis { position: relative; height: 30px; margin-left: 230px; }
 .axis span { position: absolute; transform: translateX(-50%); font-size: 22px; color: #94a3b8; }
-.lane { display: flex; align-items: center; height: 38px; }
+.lane { display: flex; align-items: center; height: 36px; }
 .lane .name { flex: none; width: 230px; font-size: 25px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
               padding-right: 12px; color: var(--c); }
 .lane .bars { position: relative; flex: 1; height: 30px; }

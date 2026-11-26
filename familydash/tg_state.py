@@ -221,13 +221,15 @@ class Store:
         dinner = self.dinner_at(now)
         steps = tg.schedule(self.plan, dinner, {**st, "done": done_simple}, now=now)
         skipped = set(st["skipped"])
-        for s in steps:
-            if s.id in skipped and s.status != "done":
-                s.status = "skipped"
-        bd = tg.board(steps, now, dinner)
         route = self.route()
         sched = kz.apply(st["kelsey"]["events"], route, self.cfg.tz)
         est = kz.estimate(sched, route, now, self.cfg.kelsey_name, self.plan_depart(now))
+        for s in steps:
+            if s.id in skipped and s.status != "done":
+                s.status = "skipped"
+            elif s.after_guest and s.status in ("now", "late", "soon") and est.status != "arrived":
+                s.status, s.waiting_on = "waiting", "guest"       # not late: it's waiting for Kelsey
+        bd = tg.board(steps, now, dinner)
         celebrate = st.get("celebrate")
         if celebrate and (now - dt.datetime.fromisoformat(celebrate["at"])) > dt.timedelta(minutes=4):
             celebrate = None
@@ -263,7 +265,7 @@ class Store:
             "tv": {"mode": st["tv_mode"]},
             "undo_depth": len(st.get("undo", [])),
             "_steps": steps, "_sched": sched, "_est": est, "_route": route, "_dinner": dinner,
-            "_plan_depart": self.plan_depart(now),
+            "_plan_depart": self.plan_depart(now), "_dish_order": [d["id"] for d in self.plan["dishes"]],
         }
 
     def hero(self, bd: dict, steps: list, now: dt.datetime, dinner: dt.datetime, celebrate, est) -> dict:
@@ -294,8 +296,9 @@ class Store:
         if bd["now"]:
             s = bd["now"][0]
             if s.status == "waiting":
-                return {"big": f"{s.emoji} {s.label}", "sub": f"as soon as the {by[s.waiting_on].dish.lower()} is done",
-                        "tone": "calm"}
+                on = (f"{self.cfg.kelsey_name} is here" if s.waiting_on == "guest"
+                      else f"the {by[s.waiting_on].dish.lower()} is done")
+                return {"big": f"{s.emoji} {s.label}", "sub": f"as soon as {on}", "tone": "calm"}
             left = max(0, int((s.end - now).total_seconds() // 60))
             return {"big": f"{s.emoji} {s.label}", "sub": f"{left} min left" + (f" · {s.who}" if s.who else ""), "tone": "now"}
         if bd["next"]:

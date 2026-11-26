@@ -24,7 +24,7 @@ def test_roast_table_interpolates_usda_upper_bounds():
 
 
 def test_default_plan_14lb_dinner_at_4():
-    steps = tg.schedule(PLAN, T, {"turkey_lb": 14}, now=at(9))
+    steps = tg.schedule(PLAN, T, {"turkey_lb": 14}, now=at(8))
     b = tg.by_id(steps)
     assert (b["turkey_out_fridge"].start, b["turkey_prep"].start, b["turkey_roast"].start) == (at(9, 50), at(10, 55), at(11, 15))
     assert b["turkey_roast"].end == at(15, 0) and b["turkey_rest"].end == at(15, 40)
@@ -36,8 +36,10 @@ def test_default_plan_14lb_dinner_at_4():
     assert b["table_set"].who == "Hannah & Elliott"
     assert tg.resource_conflicts(steps) == []
     assert {d["id"] for d in PLAN["dishes"]} >= {"turkey", "potatoes", "salad", "boxgravy", "gravy", "stuffing", "biscuits",
-                                                 "beans"}
-    assert b["beans_trim"].start == at(15, 0) and b["beans_steam"].end == at(15, 56)
+                                                 "beans", "desserts"}
+    assert b["beans_trim"].start == at(12, 30) and b["beans_steam"].end == at(15, 56)
+    assert b["biscuits_tray"].end == at(15, 35) and b["pie_bake"].end == at(9, 55) and b["pie_bake"].temp == 425
+    assert b["cheesecake_make"].start == at(12, 30) and b["cheesecake_make"].after_guest
 
 
 def test_statuses_mid_roast():
@@ -49,12 +51,13 @@ def test_statuses_mid_roast():
     assert b["turkey_temp_check"].start == at(11, 20) + dt.timedelta(minutes=round(225 * .75))
     assert b["potato_boil"].status == "now" and b["potato_peel"].status == "late" and b["table_set"].status == "later"
     bd = tg.board(steps, at(14, 50), T)
-    assert {s.id for s in bd["next"]} >= {"stuffing_bake", "beans_trim"}
+    assert {s.id for s in bd["next"]} >= {"stuffing_bake", "table_set"}
     assert len({s.dish_id for s in bd["next"]}) == len(bd["next"])
 
 
 def test_late_turkey_makes_dependents_wait_not_late():
-    steps = tg.schedule(PLAN, T, {"turkey_lb": 14, "done": {"turkey_prep": iso(11, 15)}}, now=at(15, 10))
+    done = {"turkey_prep": iso(11, 15), "pie_prep": iso(8, 55), "pie_bake": iso(9, 55)}
+    steps = tg.schedule(PLAN, T, {"turkey_lb": 14, "done": done}, now=at(15, 10))
     b = tg.by_id(steps)
     assert b["turkey_roast"].status == "late"
     assert b["gravy_fresh"].status == "waiting" and b["gravy_fresh"].waiting_on == "turkey_roast"
@@ -95,8 +98,9 @@ def test_oven_temperature_conflict_is_reported():
 def test_lanes_and_window():
     steps = tg.schedule(PLAN, T, {"turkey_lb": 14, "done": {"turkey_prep": iso(11, 15)}}, now=at(13))
     ws, we = tg.timeline_window(steps, T)
-    assert (ws, we) == (at(9), at(17))
-    lanes = tg.lanes(steps, ws, we)
-    assert lanes[0]["dish"] == "Turkey" and len(lanes) == 9
+    assert (ws, we) == (at(8), at(17))
+    lanes = tg.lanes(steps, ws, we, [d["id"] for d in PLAN["dishes"]])
+    assert lanes[0]["dish"] == "Turkey" and len(lanes) == 10
+    assert tg.lanes(steps, ws, we)[0]["dish"] == "Desserts"
     roast = next(x for x in lanes[0]["blocks"] if x["id"] == "turkey_roast")
-    assert abs(roast["left"] - 100 * 2.25 / 8) < 1e-6 and abs(roast["width"] - 100 * 3.75 / 8) < 1e-6
+    assert abs(roast["left"] - 100 * 3.25 / 9) < 1e-6 and abs(roast["width"] - 100 * 3.75 / 9) < 1e-6

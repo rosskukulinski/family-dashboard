@@ -10,7 +10,7 @@ from . import thanksgiving as tg
 from .config import Config
 
 STYLE = (Path(__file__).parent / "thanksgiving.css").read_text()
-MAX_LANES = 9
+MAX_LANES = 10
 esc = html.escape
 
 
@@ -53,7 +53,7 @@ def lanes_html(view: dict, now: dt.datetime) -> str:
     # the afternoon crunch: zoom in once the morning is over
     if now.date() == dinner.date() and now >= dinner - dt.timedelta(hours=2, minutes=30):
         ws = max(ws, (now - dt.timedelta(hours=1, minutes=30)).replace(minute=0, second=0, microsecond=0))
-    lanes = tg.lanes([s for s in steps if s.end >= ws], ws, we)[:MAX_LANES]
+    lanes = tg.lanes([s for s in steps if s.end >= ws and not s.optional], ws, we, view.get("_dish_order"))[:MAX_LANES]
     ticks = "".join(f'<span style="left:{p:.2f}%">{t}</span>' for p, t in tg.hour_ticks(ws, we))
     out = []
     for lane in lanes:

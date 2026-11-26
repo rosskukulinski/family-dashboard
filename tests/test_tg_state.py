@@ -17,7 +17,7 @@ def at(h, m=0, day=26):
 def store(tmp_path):
     cfg = Config.from_env({"TG_DATE": "2026-11-26", "KELSEY_PLAN_DEPART": "07:00", "DATA_DIR": str(tmp_path),
                            "TZ": "America/Los_Angeles", "TG_ROTATE": "120,60"})
-    clock = {"now": at(9)}
+    clock = {"now": at(8)}
     s = Store(cfg, clock=lambda: clock["now"])
     s.clock_box = clock
     return s
@@ -30,7 +30,7 @@ def tick(store, h, m=0, day=26):
 def test_fresh_view_and_persistence(store):
     v = store.view()
     assert v["dinner_label"] == "4:00pm" and v["turkey_lb"] == 14 and v["roast_minutes"] == 225
-    assert v["hero"]["big"] == "🦃 Happy Thanksgiving" and "Turkey out of the fridge" in v["hero"]["sub"]
+    assert v["hero"]["big"] == "🦃 Happy Thanksgiving" and "Make the pumpkin pie in 30 min" in v["hero"]["sub"]
     assert v["kelsey"]["status"] == "pending" and v["kelsey"]["eta_label"] == "12:05pm"
     assert "<svg" in v["kelsey"]["svg"]
     store.apply({"op": "settings", "turkey_lb": 16})
@@ -95,7 +95,7 @@ def test_kelsey_ops(store):
 def test_night_before_shows_tomorrows_plan(store):
     tick(store, 20, 0, day=25)
     v = store.view()
-    assert v["hero"]["big"] == "🦃 Thursday's plan" and "9:50am" in v["hero"]["sub"]
+    assert v["hero"]["big"] == "🦃 Thursday's plan" and "Make the pumpkin pie at 8:30am" in v["hero"]["sub"]
     assert all(s["status"] == "later" for s in v["steps"] if s["kind"] != "passive")
     assert v["kelsey"]["headline"] == "leaves ~7:00am" and v["kelsey"]["eta_label"] == "12:05pm"
     v = store.apply({"op": "kelsey", "kind": "eta", "eta": "12:30"})
@@ -113,6 +113,17 @@ def test_day_rollover_forgets_taps_and_pins_but_keeps_settings(store, tmp_path):
     assert v["turkey_lb"] == 15 and v["tv"]["mode"] == "rotate" and store.state["done"] == {}
     assert v["kelsey"]["status"] == "pending"
     assert json.loads(store.path.read_text())["day"] == "2026-11-26"
+
+
+def test_cheesecake_waits_for_kelsey(store):
+    tick(store, 13, 0)
+    v = store.view()
+    cake = next(s for s in v["steps"] if s["id"] == "cheesecake_make")
+    assert cake["status"] == "waiting" and cake["waiting_on"] == "guest"
+    assert "late" not in v["board"] or "cheesecake_make" not in v["board"]["late"]
+    store.apply({"op": "kelsey", "kind": "arrive"})
+    v = store.view()
+    assert next(s for s in v["steps"] if s["id"] == "cheesecake_make")["status"] in ("now", "late")
 
 
 def test_reset_needs_confirmation(store):

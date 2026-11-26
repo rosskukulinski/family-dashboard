@@ -65,6 +65,7 @@ class Step:
     notes: str
     optional: bool
     who: str
+    after_guest: bool
     start: dt.datetime
     end: dt.datetime
     anchored_to: str | None        # step id whose actual completion re-flows this one
@@ -176,7 +177,8 @@ def schedule(plan: dict, dinner_at: dt.datetime, state: dict | None = None,
             id=sid, dish_id=d["id"], dish=d["name"], emoji=d.get("emoji", ""), color=d.get("color", "#94a3b8"),
             label=s["label"], check_label=s.get("check_label", "Done"), kind=s.get("kind", "active"),
             resource=s.get("resource", "none"), temp=s.get("temp"), notes=s.get("notes", ""),
-            optional=bool(s.get("optional") or d.get("optional")), who=s.get("who", ""), start=start, end=end,
+            optional=bool(s.get("optional") or d.get("optional")), who=s.get("who", ""),
+            after_guest=bool(s.get("after_guest")), start=start, end=end,
             anchored_to=anchored, done_at=done.get(sid)))
     steps.sort(key=lambda s: (s.start, s.end))
     if now is not None:
@@ -269,9 +271,12 @@ def pct(t: dt.datetime, ws: dt.datetime, we: dt.datetime) -> float:
     return max(0.0, min(100.0, 100 * (t - ws) / (we - ws)))
 
 
-def lanes(steps: list[Step], ws: dt.datetime, we: dt.datetime) -> list[dict]:
-    """Per dish, blocks positioned as percentages of the timeline width (for the TV)."""
+def lanes(steps: list[Step], ws: dt.datetime, we: dt.datetime, order: list[str] | None = None) -> list[dict]:
+    """Per dish (in plan order when given), blocks positioned as percentages of the
+    timeline width (for the TV)."""
     out: dict[str, dict] = {}
+    if order:
+        steps = sorted(steps, key=lambda s: order.index(s.dish_id) if s.dish_id in order else len(order))
     for s in steps:
         lane = out.setdefault(s.dish_id, {"dish": s.dish, "emoji": s.emoji, "color": s.color, "blocks": []})
         lane["blocks"].append({"id": s.id, "label": s.label, "kind": s.kind, "status": s.status, "temp": s.temp,
